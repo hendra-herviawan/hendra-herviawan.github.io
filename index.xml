@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>M Hendra Herviawan ~ Homepage on M Hendra Herviawan~Blog</title>
+    <link>/</link>
+    <description>Recent content in M Hendra Herviawan ~ Homepage on M Hendra Herviawan~Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 23 Mar 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>A Plain Markdown Post</title>
+      <link>/tutorial/r/markdown-hello/</link>
+      <pubDate>Fri, 30 Dec 2016 21:49:57 -0700</pubDate>
+      
+      <guid>/tutorial/r/markdown-hello/</guid>
+      <description>This is a post written in plain Markdown (*.md) instead of R Markdown (*.Rmd). The major differences are:
+ You cannot run any R code in a plain Markdown document, whereas in an R Markdown document, you can embed R code chunks (```{r}); A plain Markdown post is rendered through Blackfriday, and an R Markdown document is compiled by rmarkdown and Pandoc.  There are many differences in syntax between Blackfriday&amp;rsquo;s Markdown and Pandoc&amp;rsquo;s Markdown.</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>/about/</link>
+      <pubDate>Thu, 05 May 2016 21:48:51 -0700</pubDate>
+      
+      <guid>/about/</guid>
+      <description>This is a &amp;ldquo;hello world&amp;rdquo; example website for the blogdown package. The theme was forked from @jrutheiser/hugo-lithium-theme and modified by Yihui Xie.</description>
+    </item>
+    
+    <item>
+      <title>Hello R Markdown</title>
+      <link>/tutorial/r/rmarkdown/</link>
+      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      
+      <guid>/tutorial/r/rmarkdown/</guid>
+      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+You can embed an R code chunk like this:
+summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+    </item>
+    
+    <item>
+      <title>Convert data.table to binary matrix</title>
+      <link>/tutorial/r/data.table-convert-data.table-to-binary-matrix/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/tutorial/r/data.table-convert-data.table-to-binary-matrix/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Customer Segmentation using RFM Analysis</title>
+      <link>/blog/customer-segmentation-using-rfm-analysis/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/customer-segmentation-using-rfm-analysis/</guid>
+      <description>M Hendra Herviawan  Project Overview According to wikipedia.org, “RFM is a method used for analyzing customer value”.
+RFM stands for the three dimensions:
+ Recency – How recently did the customer purchase? Frequency – How often do they purchase? Monetary Value – How much do they spend?  The resulting segments can be ordered from most valuable (highest recency, frequency, and value) to least valuable (lowest recency, frequency, and value).</description>
+    </item>
+    
+    <item>
+      <title>Market Basket Analysis using Word2Vec</title>
+      <link>/blog/market-basket-analysis-using-word2vec/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/market-basket-analysis-using-word2vec/</guid>
+      <description>M Hendra Herviawan Project Overview Market Basket Analysis is a modelling technique based upon the theory that if you buy a certain group of items, you are more (or less) likely to buy another group of items.
+# This Python 3 environment comes with many helpful analytics libraries installed # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python # For example, here&#39;s several helpful packages to load in import pandas as pd import numpy as np import gensim from matplotlib import pyplot as plt from sklearn.</description>
+    </item>
+    
+    <item>
+      <title>Recomendation system using Item Based Collaboratife Filtering (ICBF) Algorithma</title>
+      <link>/blog/recomendation-system-using-item-based-collaboratife-filtering-icbf-algorithma/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/recomendation-system-using-item-based-collaboratife-filtering-icbf-algorithma/</guid>
+      <description>M Hendra Herviawan  Project Overview This is a transnational data set which contains all the transactions occurring between 01/12/2010 and 09/12/2011 for a UK-based and registered non-store online retail.The company mainly sells unique all-occasion gifts. Many customers of the company are wholesalers.
+The following libraries were used in this project:
+#setwd(&amp;quot;~/Documents/Kaggle/ecommerce-data/eda&amp;quot;) library(methods) library(recommenderlab) library(data.table) library(ggplot2) library(knitr)  Data Pre-preprocessing Some pre-processing of the data available is required before creating the recommendation system.</description>
+    </item>
+    
+  </channel>
+</rss>
