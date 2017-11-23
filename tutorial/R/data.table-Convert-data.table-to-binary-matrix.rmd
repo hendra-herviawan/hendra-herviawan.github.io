@@ -1,6 +1,8 @@
 ---
 title: "Convert data.table to binary matrix"
 author: "M Hendra Herviawan"
+categories: ["R"]
+tags: ["Data Wrangling", "data.table"]
 output: html_document
 ---
 

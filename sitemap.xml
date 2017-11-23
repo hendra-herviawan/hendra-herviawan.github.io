@@ -8,18 +8,8 @@
   </url>
   
   <url>
-    <loc>/tutorial/r/markdown-hello/</loc>
-    <lastmod>2016-12-30T21:49:57-07:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/about/</loc>
     <lastmod>2016-05-05T21:48:51-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tutorial/r/rmarkdown/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
   
   <url>
@@ -41,24 +31,36 @@
   </url>
   
   <url>
+    <loc>/tags/data-wrangling/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/data.table/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/blog/market-basket-analysis-using-word2vec/</loc>
   </url>
   
   <url>
-    <loc>/tags/plot/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <loc>/tags/marketing-analytic/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/nlp/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/python/</loc>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/categories/r/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>/tags/r-markdown/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -67,20 +69,12 @@
   </url>
   
   <url>
-    <loc>/tags/regression/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>/tags/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tutorial/</loc>
-    <lastmod>2016-12-30T21:49:57-07:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nlp on M Hendra Herviawan~Blog</title>
+    <link>/tags/nlp/</link>
+    <description>Recent content in Nlp on M Hendra Herviawan~Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="/tags/nlp/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Market Basket Analysis using Word2Vec</title>
+      <link>/blog/market-basket-analysis-using-word2vec/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/market-basket-analysis-using-word2vec/</guid>
+      <description>M Hendra Herviawan Project Overview Market Basket Analysis is a modelling technique based upon the theory that if you buy a certain group of items, you are more (or less) likely to buy another group of items.
+# This Python 3 environment comes with many helpful analytics libraries installed # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python # For example, here&#39;s several helpful packages to load in import pandas as pd import numpy as np import gensim from matplotlib import pyplot as plt from sklearn.</description>
+    </item>
+    
+  </channel>
+</rss>
