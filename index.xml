@@ -21,15 +21,6 @@
     </item>
     
     <item>
-      <title>Convert data.table to binary matrix</title>
-      <link>/tutorial/r/data.table-convert-data.table-to-binary-matrix/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>/tutorial/r/data.table-convert-data.table-to-binary-matrix/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Customer Segmentation using RFM Analysis</title>
       <link>/blog/customer-segmentation-using-rfm-analysis/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
@@ -59,6 +50,16 @@ RFM stands for the three dimensions:
       <description>M Hendra Herviawan  Project Overview This is a transnational data set which contains all the transactions occurring between 01/12/2010 and 09/12/2011 for a UK-based and registered non-store online retail.The company mainly sells unique all-occasion gifts. Many customers of the company are wholesalers.
 The following libraries were used in this project:
 #setwd(&amp;quot;~/Documents/Kaggle/ecommerce-data/eda&amp;quot;) library(methods) library(recommenderlab) library(data.table) library(ggplot2) library(knitr)  Data Pre-preprocessing Some pre-processing of the data available is required before creating the recommendation system.</description>
+    </item>
+    
+    <item>
+      <title>Univariate logistic regression with Tensorflow</title>
+      <link>/tutorial/neural-network/univariate_logistic_regression_with_tensorflow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/tutorial/neural-network/univariate_logistic_regression_with_tensorflow/</guid>
+      <description>M Hendra Herviawan Project Overview Logistic regression adalah statistical model untuk menganalisa dataset dimana terdapat satu atau lebih independent variable. Output dari model adalah dichotomi variable (hanya terdapat dua kemungkinan). Sebuah Neuron pada Neural network sebenarnya hanya merupakan sebuah Logistic regression yang menerima satu atau lebih input dan mengeluarkan probabilitas antara 0 dan 1.
+import numpy as np import pandas as pd from sklearn import datasets, metrics, preprocessing from sklearn.</description>
     </item>
     
   </channel>
