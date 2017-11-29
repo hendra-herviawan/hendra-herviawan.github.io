@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+		
+		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+		})(window,document,'script','dataLayer','GTM-5CXDD64');</script>
+		
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.30.2" />
+
+
+<title>MNIST Hand writing recognition with Pytorch - M Hendra Herviawan~Blog</title>
+<meta property="og:title" content="MNIST Hand writing recognition with Pytorch - M Hendra Herviawan~Blog">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="kaggle.com/hendraherviawan/kernels">Kaggle</a></li>
+    
+    <li><a href="/tutorial/">Tutorial</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+
+    <h1 class="article-title">MNIST Hand writing recognition with Pytorch</h1>
+
+    
+
+    <div class="article-content">
+      
+
+<h3 id="m-hendra-herviawan">M Hendra Herviawan</h3>
+
+<h2 id="project-overview">Project Overview</h2>
+
+<p>&hellip;</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torchvision.transforms as transforms
+import torchvision.datasets as dsets
+from torch.autograd import Variable
+</code></pre>
+
+<h2 id="loading-dataset">LOADING DATASET</h2>
+
+<pre><code class="language-python">train_dataset = dsets.MNIST(root='./data', 
+                            train=True, 
+                            transform=transforms.ToTensor(),
+                            download=True)
+
+test_dataset = dsets.MNIST(root='./data', 
+                           train=False, 
+                           transform=transforms.ToTensor())
+</code></pre>
+
+<pre><code>Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+Processing...
+Done!
+</code></pre>
+
+<h4 id="making-dataset-iterable">MAKING DATASET ITERABLE</h4>
+
+<pre><code class="language-python">batch_size = 100
+n_iters = 3000
+num_epochs = n_iters / (len(train_dataset) / batch_size)
+num_epochs = int(num_epochs)
+
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
+                                           batch_size=batch_size, 
+                                           shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
+                                          batch_size=batch_size, 
+                                          shuffle=False)
+
+</code></pre>
+
+<h2 id="1-feed-forward-network">1. Feed Forward Network</h2>
+
+<pre><code class="language-python">class FeedforwardNeuralNetModel(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(FeedforwardNeuralNetModel, self).__init__()
+        # Linear function 1: 784 --&gt; 100
+        self.fc1 = nn.Linear(input_dim, hidden_dim) 
+        # Non-linearity 1
+        self.relu1 = nn.ReLU()
+        
+        # Linear function 2: 100 --&gt; 100
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        # Non-linearity 2
+        self.relu2 = nn.ReLU()
+        
+        # Linear function 3: 100 --&gt; 100
+        self.fc3 = nn.Linear(hidden_dim, hidden_dim)
+        # Non-linearity 3
+        self.relu3 = nn.ReLU()
+        
+        # Linear function 4 (readout): 100 --&gt; 10
+        self.fc4 = nn.Linear(hidden_dim, output_dim)  
+    
+    def forward(self, x):
+        # Linear function 1
+        out = self.fc1(x)
+        # Non-linearity 1
+        out = self.relu1(out)
+        
+        # Linear function 2
+        out = self.fc2(out)
+        # Non-linearity 2
+        out = self.relu2(out)
+        
+        # Linear function 2
+        out = self.fc3(out)
+        # Non-linearity 2
+        out = self.relu3(out)
+        
+        # Linear function 4 (readout)
+        out = self.fc4(out)
+        return out
+</code></pre>
+
+<h3 id="1-1-instantiate-model-class">1.1 INSTANTIATE MODEL CLASS</h3>
+
+<pre><code class="language-python">input_dim = 28*28
+hidden_dim = 100
+output_dim = 10
+
+learning_rate = 0.1
+
+ffnn = FeedforwardNeuralNetModel(input_dim, hidden_dim, output_dim)
+
+#######################
+#  USE GPU FOR MODEL  #
+#######################
+if torch.cuda.is_available():
+    ffnn.cuda()
+    
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+print(ffnn)
+</code></pre>
+
+<pre><code>FeedforwardNeuralNetModel (
+  (fc1): Linear (784 -&gt; 100)
+  (relu1): ReLU ()
+  (fc2): Linear (100 -&gt; 100)
+  (relu2): ReLU ()
+  (fc3): Linear (100 -&gt; 100)
+  (relu3): ReLU ()
+  (fc4): Linear (100 -&gt; 10)
+)
+</code></pre>
+
+<h3 id="1-2-training">1.2 Training</h3>
+
+<pre><code class="language-python">iter = 0
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        if torch.cuda.is_available():
+            images = Variable(images.view(-1, 28*28).cuda())
+            labels = Variable(labels.cuda())
+        else:
+            images = Variable(images.view(-1, 28*28))
+            labels = Variable(labels)
+        
+        # Clear gradients w.r.t. parameters
+        optimizer.zero_grad()
+        
+        # Forward pass to get output/logits
+        outputs = ffnn(images)
+        
+        # Calculate Loss: softmax --&gt; cross entropy loss
+        loss = criterion(outputs, labels)
+        
+        # Getting gradients w.r.t. parameters
+        loss.backward()
+        
+        # Updating parameters
+        optimizer.step()
+        
+        iter += 1
+        
+        if iter % 500 == 0:        
+            # Print Loss
+            print('Iteration: {}. Loss: {}'.format(iter, loss.data[0]))
+</code></pre>
+
+<pre><code>Iteration: 500. Loss: 0.06629012525081635
+Iteration: 1000. Loss: 0.03477341681718826
+Iteration: 1500. Loss: 0.06251147389411926
+Iteration: 2000. Loss: 0.06445249170064926
+Iteration: 2500. Loss: 0.043287571519613266
+Iteration: 3000. Loss: 0.01751679927110672
+</code></pre>
+
+<h3 id="1-3-evaluation">1.3 Evaluation</h3>
+
+<pre><code class="language-python">def evaluate(model, test_loader):
+    # Calculate Accuracy         
+    correct = 0
+    total = 0
+    # Iterate through test dataset
+    for images, labels in test_loader:
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        if torch.cuda.is_available():
+            images = Variable(images.view(-1, 28*28).cuda())
+        else:
+            images = Variable(images.view(-1, 28*28))
+
+        # Forward pass only to get logits/output
+        outputs = model(images)
+
+        # Get predictions from the maximum value
+        _, predicted = torch.max(outputs.data, 1)
+
+        # Total number of labels
+        total += labels.size(0)
+
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        # Total correct predictions
+        correct += (predicted.cpu() == labels.cpu()).double().sum()
+
+    accuracy = 100 * correct / total
+
+    # Print Loss
+    print('Accuracy: {}'.format(accuracy))
+
+evaluate(ffnn, test_loader)
+</code></pre>
+
+<pre><code>Accuracy: 97.62
+</code></pre>
+
+<h2 id="2-recurrent-neural-network-rnn">2. Recurrent Neural Network (RNN)</h2>
+
+<pre><code class="language-python">class RNNModel(nn.Module):
+    def __init__(self, input_dim, hidden_dim, layer_dim, output_dim):
+        super(RNNModel, self).__init__()
+        # Hidden dimensions
+        self.hidden_dim = hidden_dim
+        
+        # Number of hidden layers
+        self.layer_dim = layer_dim
+        
+        # Building your RNN
+        # batch_first=True causes input/output tensors to be of shape
+        # (batch_dim, seq_dim, feature_dim)
+        self.rnn = nn.RNN(input_dim, hidden_dim, layer_dim, batch_first=True, nonlinearity='tanh')
+        
+        # Readout layer
+        self.fc = nn.Linear(hidden_dim, output_dim)
+    
+    def forward(self, x):
+        # Initialize hidden state with zeros
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        if torch.cuda.is_available():
+            h0 = Variable(torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).cuda())
+        else:
+            h0 = Variable(torch.zeros(self.layer_dim, x.size(0), self.hidden_dim))
+            
+        # One time step
+        out, hn = self.rnn(x, h0)
+        
+        # Index hidden state of last time step
+        # out.size() --&gt; 100, 28, 100
+        # out[:, -1, :] --&gt; 100, 100 --&gt; just want last time step hidden states! 
+        out = self.fc(out[:, -1, :]) 
+        # out.size() --&gt; 100, 10
+        return out
+</code></pre>
+
+<h3 id="2-1-instantiate-model-class">2.1 INSTANTIATE MODEL CLASS</h3>
+
+<pre><code class="language-python">input_dim = 28
+hidden_dim = 100
+layer_dim = 2  # ONLY CHANGE IS HERE FROM ONE LAYER TO TWO LAYER
+output_dim = 10
+
+rnn = RNNModel(input_dim, hidden_dim, layer_dim, output_dim)
+
+#######################
+#  USE GPU FOR MODEL  #
+#######################
+if torch.cuda.is_available():
+    rnn.cuda()
+    
+'''
+STEP 5: INSTANTIATE LOSS CLASS
+'''
+criterion = nn.CrossEntropyLoss()
+
+'''
+STEP 6: INSTANTIATE OPTIMIZER CLASS
+'''
+learning_rate = 0.1
+
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+print(rnn)
+</code></pre>
+
+<pre><code>RNNModel (
+  (rnn): RNN(28, 100, num_layers=2, batch_first=True)
+  (fc): Linear (100 -&gt; 10)
+)
+</code></pre>
+
+<h3 id="2-3-training">2.3 Training</h3>
+
+<pre><code class="language-python"># Number of steps to unroll
+seq_dim = 28  
+
+iter = 0
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        # Load images as Variable
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        if torch.cuda.is_available():
+            images = Variable(images.view(-1, seq_dim, input_dim).cuda())
+            labels = Variable(labels.cuda())
+        else:
+            images = Variable(images.view(-1, seq_dim, input_dim))
+            labels = Variable(labels)
+            
+        # Clear gradients w.r.t. parameters
+        optimizer.zero_grad()
+        
+        # Forward pass to get output/logits
+        # outputs.size() --&gt; 100, 10
+        outputs = rnnl(images)
+        
+        # Calculate Loss: softmax --&gt; cross entropy loss
+        loss = criterion(outputs, labels)
+        
+        # Getting gradients w.r.t. parameters
+        loss.backward()
+        
+        # Updating parameters
+        optimizer.step()
+        
+        iter += 1
+        
+        if iter % 500 == 0:
+            # Print Loss
+            print('Iteration: {}. Loss: {}'.format(iter, loss.data[0]))
+</code></pre>
+
+<pre><code>Iteration: 500. Loss: 0.7694712281227112
+Iteration: 1000. Loss: 1.9998059272766113
+Iteration: 1500. Loss: 0.24714641273021698
+Iteration: 2000. Loss: 0.29203882813453674
+Iteration: 2500. Loss: 0.12589164078235626
+Iteration: 3000. Loss: 0.08163817226886749
+</code></pre>
+
+<h3 id="2-3-evaluation">2.3 Evaluation</h3>
+
+<pre><code class="language-python">def evaluate(model, test_loader):
+    # Calculate Accuracy         
+    correct = 0
+    total = 0
+    # Iterate through test dataset
+    for images, labels in test_loader:
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        if torch.cuda.is_available():
+            images = Variable(images.view(-1, seq_dim, input_dim).cuda())
+        else:
+            images = Variable(images.view(-1, seq_dim, input_dim))
+
+        # Forward pass only to get logits/output
+        outputs = model(images)
+
+        # Get predictions from the maximum value
+        _, predicted = torch.max(outputs.data, 1)
+
+        # Total number of labels
+        total += labels.size(0)
+
+        #######################
+        #  USE GPU FOR MODEL  #
+        #######################
+        # Total correct predictions
+        correct += (predicted.cpu() == labels.cpu()).double().sum()
+
+    accuracy = 100 * correct / total
+
+    # Print Loss
+    print('Accuracy: {}'.format(accuracy))
+    
+evaluate(model, test_loader)
+</code></pre>
+
+<pre><code>Accuracy: 96.71
+</code></pre>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/python.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/julia.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

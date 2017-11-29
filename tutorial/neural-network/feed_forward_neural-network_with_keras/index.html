@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+		
+		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+		})(window,document,'script','dataLayer','GTM-5CXDD64');</script>
+		
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.30.2" />
+
+
+<title>MNIST Hand writing recognition with Tensorflow\Keras - M Hendra Herviawan~Blog</title>
+<meta property="og:title" content="MNIST Hand writing recognition with Tensorflow\Keras - M Hendra Herviawan~Blog">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="kaggle.com/hendraherviawan/kernels">Kaggle</a></li>
+    
+    <li><a href="/tutorial/">Tutorial</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+
+    <h1 class="article-title">MNIST Hand writing recognition with Tensorflow\Keras</h1>
+
+    
+
+    <div class="article-content">
+      
+
+<h3 id="m-hendra-herviawan">M Hendra Herviawan</h3>
+
+<h2 id="project-overview">Project Overview</h2>
+
+<p>&hellip;</p>
+
+<pre><code class="language-python"># Build the model of a logistic classifier
+import os
+import gzip
+import six.moves.cPickle as pickle
+import numpy as np
+
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Dropout
+from keras.datasets import mnist
+from keras.utils import np_utils
+</code></pre>
+
+<pre><code>Using TensorFlow backend.
+/home/x/.local/bin/intelpython3/lib/python3.6/importlib/_bootstrap.py:205: RuntimeWarning: compiletime version 3.5 of module 'tensorflow.python.framework.fast_tensor_util' does not match runtime version 3.6
+  return f(*args, **kwds)
+</code></pre>
+
+<h2 id="preparing-the-data">Preparing the Data</h2>
+
+<p>We can learn the basics of Keras by walking through a simple example: recognizing handwritten digits from the MNIST dataset. MNIST consists of 28 x 28 grayscale images of handwritten digits like these:</p>
+
+<p><img src="https://keras.rstudio.com/images/MNIST.png" alt="MNIST" title="MNIST" /></p>
+
+<p>The dataset also includes labels for each image, telling us which digit it is. For example, the labels for the above images are 5, 0, 4, and 1.</p>
+
+<pre><code class="language-python">input_dim = 784
+
+# the data, shuffled and split between train and test sets
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+X_train = X_train.reshape(60000, input_dim)
+X_test = X_test.reshape(10000, input_dim)
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+X_train /= 255
+X_test /= 255
+
+print(X_train.shape[0], 'train samples')
+print(X_test.shape[0], 'test samples')
+</code></pre>
+
+<pre><code>60000 train samples
+10000 test samples
+</code></pre>
+
+<pre><code class="language-python">nb_classes = 10
+
+# convert class vectors to binary class matrices
+Y_train = np_utils.to_categorical(y_train, nb_classes)
+Y_test = np_utils.to_categorical(y_test, nb_classes)
+</code></pre>
+
+<h2 id="defining-the-model">Defining the Model</h2>
+
+<p>The simplest type of model is the Sequential model, a linear stack of layers.</p>
+
+<p>The input_shape argument to the first layer specifies the shape of the input data (a length 784 numeric vector representing a grayscale image). The final layer outputs a length 10 numeric vector (probabilities for each digit) using a softmax activation function.</p>
+
+<pre><code class="language-python">batch_size = 256
+nb_epoch = 10
+
+def build_logistic_model(input_dim, output_dim):
+    model = Sequential()
+    model.add(Dense(256, input_dim=input_dim, 
+                    activation='relu'))
+    model.add(Dropout(0.4))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Dense(output_dim, activation='softmax'))
+    return model
+</code></pre>
+
+<pre><code class="language-python">model = build_logistic_model(input_dim, nb_classes)
+model.summary()
+</code></pre>
+
+<pre><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+dense_1 (Dense)              (None, 256)               200960    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 256)               0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 128)               32896     
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_3 (Dense)              (None, 10)                1290      
+=================================================================
+Total params: 235,146
+Trainable params: 235,146
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre>
+
+<p>Next, compile the model with appropriate loss function, optimizer, and metrics:</p>
+
+<pre><code class="language-python"># compile the model
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', 
+              metrics=['accuracy'])
+</code></pre>
+
+<pre><code class="language-python">history = model.fit(X_train, Y_train,
+                    batch_size=batch_size, epochs=nb_epoch,
+                    verbose=1, validation_data=(X_test, Y_test))
+</code></pre>
+
+<pre><code>Train on 60000 samples, validate on 10000 samples
+Epoch 1/10
+60000/60000 [==============================] - 2s 31us/step - loss: 0.4348 - acc: 0.8686 - val_loss: 0.1777 - val_acc: 0.9453
+Epoch 2/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.2003 - acc: 0.9412 - val_loss: 0.1173 - val_acc: 0.9642
+Epoch 3/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.1509 - acc: 0.9550 - val_loss: 0.0951 - val_acc: 0.9715
+Epoch 4/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.1262 - acc: 0.9631 - val_loss: 0.0916 - val_acc: 0.9719
+Epoch 5/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.1084 - acc: 0.9677 - val_loss: 0.0783 - val_acc: 0.9751
+Epoch 6/10
+60000/60000 [==============================] - 1s 25us/step - loss: 0.0960 - acc: 0.9716 - val_loss: 0.0764 - val_acc: 0.9771
+Epoch 7/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.0897 - acc: 0.9731 - val_loss: 0.0747 - val_acc: 0.9782
+Epoch 8/10
+60000/60000 [==============================] - 1s 24us/step - loss: 0.0835 - acc: 0.9740 - val_loss: 0.0713 - val_acc: 0.9791
+Epoch 9/10
+60000/60000 [==============================] - 1s 25us/step - loss: 0.0787 - acc: 0.9766 - val_loss: 0.0725 - val_acc: 0.9791
+Epoch 10/10
+60000/60000 [==============================] - 1s 25us/step - loss: 0.0736 - acc: 0.9777 - val_loss: 0.0759 - val_acc: 0.9802
+</code></pre>
+
+<p>Evaluate the model’s performance on the test data:</p>
+
+<pre><code class="language-python">score = model.evaluate(X_test, Y_test, verbose=0)
+
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
+</code></pre>
+
+<pre><code>Test score: 0.0759495679491
+Test accuracy: 0.9802
+</code></pre>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/python.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/julia.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

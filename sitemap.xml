@@ -27,8 +27,21 @@
   </url>
   
   <url>
+    <loc>/tags/ffnn/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/tags/keras/</loc>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tutorial/neural-network/mnist_handwriting_recognition_with_keras/</loc>
+  </url>
+  
+  <url>
+    <loc>/tutorial/neural-network/mnist_handwriting_recognition_with_pytorch/</loc>
   </url>
   
   <url>
@@ -37,6 +50,11 @@
   
   <url>
     <loc>/tags/marketing-analytic/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/mnist/</loc>
     <priority>0</priority>
   </url>
   
@@ -56,7 +74,17 @@
   </url>
   
   <url>
+    <loc>/tags/pytorch/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/blog/recomendation-system-using-item-based-collaboratife-filtering-icbf-algorithma/</loc>
+  </url>
+  
+  <url>
+    <loc>/tags/rnn/</loc>
+    <priority>0</priority>
   </url>
   
   <url>

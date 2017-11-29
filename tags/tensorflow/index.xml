@@ -16,8 +16,8 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/tutorial/neural-network/univariate_logistic_regression_with_tensorflow/</guid>
-      <description>M Hendra Herviawan Project Overview Logistic regression adalah statistical model untuk menganalisa dataset dimana terdapat satu atau lebih independent variable. Output dari model adalah dichotomi variable (hanya terdapat dua kemungkinan). Sebuah Neuron pada Neural network sebenarnya hanya merupakan sebuah Logistic regression yang menerima satu atau lebih input dan mengeluarkan probabilitas antara 0 dan 1.
-import numpy as np import pandas as pd from sklearn import datasets, metrics, preprocessing from sklearn.</description>
+      <description>M Hendra Herviawan Project Overview Logistic regression adalah model statistical untuk menganalisa data dimana terdapat satu atau lebih independent variable dan mengeluarkan Output dichotomi variable (hanya terdapat dua kemungkinan). Sebuah Neuron pada Neural network merupakan Logistic regression yang menerima satu atau lebih input dan mengeluarkan probabilitas antara 0 dan 1.
+import os os.environ[&amp;quot;CUDA_DEVICE_ORDER&amp;quot;] = &amp;quot;PCI_BUS_ID&amp;quot; # see issue #152 os.environ[&amp;quot;CUDA_VISIBLE_DEVICES&amp;quot;] = &amp;quot;&amp;quot;  import numpy as np import pandas as pd from sklearn import datasets, metrics, preprocessing from sklearn.</description>
     </item>
     
   </channel>
