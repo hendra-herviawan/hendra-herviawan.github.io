@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Pyspark: GroupBy and Aggregate Functions | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/pyspark-groupby-and-aggregate-functions.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="Data Wrangling">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Pyspark: GroupBy and Aggregate Functions
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2017-06-18T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Sun 18 June 2017
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/data-science.html">Data Science</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/data-wrangling.html">#Data Wrangling</a>,               <a href="/tag/pyspark.html">#Pyspark</a>,               <a href="/tag/apache-spark.html">#Apache Spark</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <p>GroupBy allows you to group rows together based off some column value, for example, you could group together sales data by the day the sale occured, or group repeast customer data based off the name of the customer. </p>
+<p>Once you've performed the GroupBy operation you can use an aggregate function off that data. An aggregate function aggregates multiple rows of data into a single output, such as taking the sum of inputs, or counting the number of inputs.</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+
+<span class="c1"># May take a little while on a local computer</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;groupbyagg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="n">spark</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>        <span class="nt">&lt;div&gt;</span>
+            <span class="nt">&lt;p&gt;&lt;b&gt;</span>SparkSession - in-memory<span class="nt">&lt;/b&gt;&lt;/p&gt;</span>
+
+    <span class="nt">&lt;div&gt;</span>
+        <span class="nt">&lt;p&gt;&lt;b&gt;</span>SparkContext<span class="nt">&lt;/b&gt;&lt;/p&gt;</span>
+
+        <span class="nt">&lt;p&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;http://10.142.0.3:4040&quot;</span><span class="nt">&gt;</span>Spark UI<span class="nt">&lt;/a&gt;&lt;/p&gt;</span>
+
+        <span class="nt">&lt;dl&gt;</span>
+          <span class="nt">&lt;dt&gt;</span>Version<span class="nt">&lt;/dt&gt;</span>
+            <span class="nt">&lt;dd&gt;&lt;code&gt;</span>v2.2.0<span class="nt">&lt;/code&gt;&lt;/dd&gt;</span>
+          <span class="nt">&lt;dt&gt;</span>Master<span class="nt">&lt;/dt&gt;</span>
+            <span class="nt">&lt;dd&gt;&lt;code&gt;</span>local[*]<span class="nt">&lt;/code&gt;&lt;/dd&gt;</span>
+          <span class="nt">&lt;dt&gt;</span>AppName<span class="nt">&lt;/dt&gt;</span>
+            <span class="nt">&lt;dd&gt;&lt;code&gt;</span>groupbyagg<span class="nt">&lt;/code&gt;&lt;/dd&gt;</span>
+        <span class="nt">&lt;/dl&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+
+        <span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="s1">&#39;sales_info.csv&#39;</span><span class="p">,</span> <span class="n">inferSchema</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>root
+ |-- Company: string (nullable = true)
+ |-- Person: string (nullable = true)
+ |-- Sales: double (nullable = true)
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Showing the data</span>
+<span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+-------+-----+
+|Company| Person|Sales|
++-------+-------+-----+
+|   GOOG|    Sam|200.0|
+|   GOOG|Charlie|120.0|
+|   GOOG|  Frank|340.0|
+|   MSFT|   Tina|600.0|
+|   MSFT|    Amy|124.0|
+|   MSFT|Vanessa|243.0|
+|     FB|   Carl|870.0|
+|     FB|  Sarah|350.0|
+|   APPL|   John|250.0|
+|   APPL|  Linda|130.0|
+|   APPL|   Mike|750.0|
+|   APPL|  Chris|350.0|
++-------+-------+-----+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+-------+-------+------------------+
+|summary|Company| Person|             Sales|
++-------+-------+-------+------------------+
+|  count|     12|     12|                12|
+|   mean|   null|   null| 360.5833333333333|
+| stddev|   null|   null|250.08742410799007|
+|    min|   APPL|  Chris|             120.0|
+|    max|   MSFT|Vanessa|             870.0|
++-------+-------+-------+------------------+
+</pre></div>
+
+
+<h2>Order by</h2>
+<div class="highlight"><pre><span></span><span class="c1"># OrderBy</span>
+<span class="c1"># Ascending</span>
+<span class="n">df</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;Sales&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># this produces the same result</span>
+<span class="c1"># df.orderBy(df[&quot;Sales&quot;]).show()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+-------+-----+
+|Company| Person|Sales|
++-------+-------+-----+
+|   GOOG|Charlie|120.0|
+|   MSFT|    Amy|124.0|
+|   APPL|  Linda|130.0|
+|   GOOG|    Sam|200.0|
+|   MSFT|Vanessa|243.0|
+|   APPL|   John|250.0|
+|   GOOG|  Frank|340.0|
+|     FB|  Sarah|350.0|
+|   APPL|  Chris|350.0|
+|   MSFT|   Tina|600.0|
+|   APPL|   Mike|750.0|
+|     FB|   Carl|870.0|
++-------+-------+-----+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Descending call off the column itself.</span>
+<span class="n">df</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Sales&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+-------+-----+
+|Company| Person|Sales|
++-------+-------+-----+
+|     FB|   Carl|870.0|
+|   APPL|   Mike|750.0|
+|   MSFT|   Tina|600.0|
+|     FB|  Sarah|350.0|
+|   APPL|  Chris|350.0|
+|   GOOG|  Frank|340.0|
+|   APPL|   John|250.0|
+|   MSFT|Vanessa|243.0|
+|   GOOG|    Sam|200.0|
+|   APPL|  Linda|130.0|
+|   MSFT|    Amy|124.0|
+|   GOOG|Charlie|120.0|
++-------+-------+-----+
+</pre></div>
+
+
+<h2>Dataframe Aggregation</h2>
+<p>A set of methods for aggregations on a DataFrame:</p>
+<ul>
+<li>agg</li>
+<li>avg</li>
+<li>count</li>
+<li>max</li>
+<li>mean</li>
+<li>min</li>
+<li>pivot</li>
+<li>sum</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s1">&#39;Company&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>&lt;pyspark.sql.group.GroupedData at 0x7f532c65eba8&gt;
+</pre></div>
+
+
+<p>This returns a GroupedData object, off of which you can all various methods</p>
+<div class="highlight"><pre><span></span><span class="c1"># Max</span>
+<span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s1">&#39;Company&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|Company|max(Sales)|
++-------+----------+
+|   APPL|     750.0|
+|   GOOG|     340.0|
+|     FB|     870.0|
+|   MSFT|     600.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Sum</span>
+<span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s1">&#39;Company&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|Company|sum(Sales)|
++-------+----------+
+|   APPL|    1480.0|
+|   GOOG|     660.0|
+|     FB|    1220.0|
+|   MSFT|     967.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Sum by Agg</span>
+<span class="n">group_data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">&quot;Company&quot;</span><span class="p">)</span>
+<span class="n">group_data</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&#39;Sales&#39;</span><span class="p">:</span><span class="s1">&#39;sum&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|Company|sum(Sales)|
++-------+----------+
+|   APPL|    1480.0|
+|   GOOG|     660.0|
+|     FB|    1220.0|
+|   MSFT|     967.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Max by agg</span>
+<span class="n">group_data</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&#39;Sales&#39;</span><span class="p">:</span><span class="s1">&#39;max&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|Company|max(Sales)|
++-------+----------+
+|   APPL|     750.0|
+|   GOOG|     340.0|
+|     FB|     870.0|
+|   MSFT|     600.0|
++-------+----------+
+</pre></div>
+
+
+<p>Not all methods need a groupby call, instead you can just call the generalized .agg() method, that will call the aggregate across all rows in the dataframe column specified. It can take in arguments as a single column, or create multiple aggregate calls all at once using dictionary notation.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Sum</span>
+<span class="n">df</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&#39;Sales&#39;</span><span class="p">:</span><span class="s1">&#39;sum&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----------+
+|sum(Sales)|
++----------+
+|    4327.0|
++----------+
+</pre></div>
+
+
+<h2>Group Function</h2>
+<p>Seperti layaknya SQL, Spark memiliki <a href="http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#module-pyspark.sql.functions">group function</a></p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql.functions</span> <span class="kn">import</span> <span class="n">countDistinct</span><span class="p">,</span> <span class="n">avg</span><span class="p">,</span> <span class="n">stddev</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">avg</span><span class="p">(</span><span class="s1">&#39;Sales&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-----------------+
+|       avg(Sales)|
++-----------------+
+|360.5833333333333|
++-----------------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Change name of columns with alias</span>
+<span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">countDistinct</span><span class="p">(</span><span class="s2">&quot;Sales&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;Distinct Sales&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+--------------+
+|Distinct Sales|
++--------------+
+|            11|
++--------------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># That is a lot of precision for digits! Let&#39;s use the format_number to fix that!</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.functions</span> <span class="kn">import</span> <span class="n">format_number</span>
+<span class="n">sales_std</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">stddev</span><span class="p">(</span><span class="s2">&quot;Sales&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">))</span>
+
+<span class="c1"># format_number(&quot;col_name&quot;,decimal places)</span>
+<span class="n">sales_std</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">format_number</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;std_2digits&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-----------+
+|std_2digits|
++-----------+
+|     250.09|
++-----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># or with this one liner</span>
+<span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">stddev</span><span class="p">(</span><span class="s2">&quot;Sales&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">format_number</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;std_2digits&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-----------+
+|std_2digits|
++-----------+
+|     250.09|
++-----------+
+</pre></div>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

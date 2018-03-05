@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Movie Recommendation bases on Pearsone Correlation | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/movie-recommendation-bases-on-Pearsone-Correlation.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="Collaborative Movie Recommendation bases on Pearsone Correlation">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Movie Recommendation bases on Pearsone Correlation
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2017-02-01T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Wed 01 February 2017
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/data-science.html">Data Science</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/recommendation.html">#Recommendation</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <p>In this article we will learn how to build a movie recommendation system using pearsone Correlation.  </p>
+<p>By using the rating of the movie previously seen by the user, we try to recommend him/her similar movies in terms of ratings. Here I would like you to note two things:</p>
+<ol>
+<li>We are not recommending movies based on Genre.</li>
+<li>The previous movie that user watched must be present in our data set for this algorithm to work.</li>
+</ol>
+<p>This recommendation system recommends movies to the user based on the ratings of a movie that the user previously liked. To achieve this, I have used here the concept of correlations. If you don’t know what correlations is, you can check this out <a href="https://en.wikipedia.org/wiki/Correlation_and_dependence">Correlation</a>. Correlation coefficient is always between -1 and 1. The closer it is to 1, the more related two items are.</p>
+<p>So basically what we are doing here is taking the rating of the previously watched movie and calculating it’s correlation with the rest of the movies present in the dataset.</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="n">movielense</span> <span class="o">=</span> <span class="s1">&#39;ml-latest-small/&#39;</span>
+</pre></div>
+
+
+<h3>Load Movie and Rating Dataset</h3>
+<div class="highlight"><pre><span></span><span class="c1">#Loading movies</span>
+<span class="n">movies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">movielense</span><span class="o">+</span><span class="s2">&quot;movies.csv&quot;</span><span class="p">)</span>
+<span class="n">movies</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>movieId</th>
+      <th>title</th>
+      <th>genres</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>Toy Story (1995)</td>
+      <td>Adventure|Animation|Children|Comedy|Fantasy</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>Jumanji (1995)</td>
+      <td>Adventure|Children|Fantasy</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>Grumpier Old Men (1995)</td>
+      <td>Comedy|Romance</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>Waiting to Exhale (1995)</td>
+      <td>Comedy|Drama|Romance</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>Father of the Bride Part II (1995)</td>
+      <td>Comedy</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="highlight"><pre><span></span><span class="c1">#Loading Rating</span>
+<span class="n">ratings</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">movielense</span><span class="o">+</span><span class="s2">&quot;ratings.csv&quot;</span><span class="p">)</span>
+<span class="n">ratings</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ratings</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>userId</th>
+      <th>movieId</th>
+      <th>rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>31</td>
+      <td>2.5</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>1029</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>1061</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>1129</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>1172</td>
+      <td>4.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Joint Movies and Rating</h3>
+<div class="highlight"><pre><span></span><span class="c1">#Change movieId in rating dataset with title (joint)</span>
+<span class="k">def</span> <span class="nf">replace_name</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">movies</span><span class="p">[</span><span class="n">movies</span><span class="p">[</span><span class="s2">&quot;movieId&quot;</span><span class="p">]</span><span class="o">==</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">ratings</span><span class="o">.</span><span class="n">movieId</span> <span class="o">=</span> <span class="n">ratings</span><span class="o">.</span><span class="n">movieId</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">replace_name</span><span class="p">)</span>
+<span class="n">ratings</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>userId</th>
+      <th>movieId</th>
+      <th>rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>Dangerous Minds (1995)</td>
+      <td>2.5</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>Dumbo (1941)</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>Sleepers (1996)</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>Escape from New York (1981)</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>Cinema Paradiso (Nuovo cinema Paradiso) (1989)</td>
+      <td>4.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Create pivot table for userId and MovieId</h3>
+<p>Pearsone correlation work only on matrix. Our dataset is row based so we need to convert to matrix by using pandas pivot_table function.</p>
+<div class="highlight"><pre><span></span><span class="n">M</span> <span class="o">=</span> <span class="n">ratings</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;userId&#39;</span><span class="p">],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;movieId&#39;</span><span class="p">],</span><span class="n">values</span><span class="o">=</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span>
+<span class="n">M</span><span class="o">.</span><span class="n">shape</span>
+<span class="c1">#M</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>(671, 9064)
+</pre></div>
+
+
+<h3>Pearsone Correlation</h3>
+<p>TODO: Explaination aboyt pearsone correlation</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pearsone</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span><span class="n">s2</span><span class="p">):</span>
+    <span class="c1">#take 2 pd.series objects and return correlation between them</span>
+    <span class="n">s1_c</span> <span class="o">=</span> <span class="n">s1</span> <span class="o">-</span> <span class="n">s1</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">s2_c</span> <span class="o">=</span> <span class="n">s2</span> <span class="o">-</span> <span class="n">s2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s1_c</span> <span class="o">*</span> <span class="n">s2_c</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s1_c</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s2_c</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">pearsone</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="s2">&quot;Clerks (1994)&quot;</span><span class="p">],</span> <span class="n">M</span><span class="p">[</span><span class="s2">&quot;Mallrats (1995)&quot;</span><span class="p">])</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>0.26948637162292466
+</pre></div>
+
+
+<p>correlation coefficient is always between -1 and 1. The closer it is to 1, the more related two items are.</p>
+<h3>Recommendation bases on Persone Correlation</h3>
+<p>Calculating the correlation of the previously watched movie with the rest of the movies in the dataset, we sort them and print the first n recommendations based on the value entered by the user for n.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_recs</span><span class="p">(</span><span class="n">movie_name</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">num</span><span class="p">):</span>
+    <span class="c1">#num : number of recommendations</span>
+    <span class="c1">#genres = []</span>
+    <span class="n">reviews</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">title</span> <span class="ow">in</span> <span class="n">M</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="n">movie_name</span><span class="p">:</span>
+            <span class="c1">#genres.append()</span>
+            <span class="k">continue</span>
+        <span class="n">cor</span> <span class="o">=</span> <span class="n">pearsone</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">movie_name</span><span class="p">],</span> <span class="n">M</span><span class="p">[</span><span class="n">title</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cor</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reviews</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">title</span><span class="p">,</span><span class="n">cor</span><span class="p">))</span>
+
+    <span class="n">reviews</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reviews</span><span class="p">[:</span><span class="n">num</span><span class="p">]</span>
+</pre></div>
+
+
+<h3>Recommendation movies to watch based on "Toy Story (1995)"</h3>
+<div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the required no. of recommendations:&quot;</span><span class="p">))</span> <span class="c1">#10</span>
+<span class="n">mov</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the name of a movie that you liked:&quot;</span><span class="p">)</span> <span class="c1">#Toy Story (1995)</span>
+
+<span class="n">lst</span> <span class="o">=</span> <span class="n">get_recs</span><span class="p">(</span><span class="n">mov</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+<span class="k">print</span> <span class="p">(</span><span class="s2">&quot;Recommendations for you:&quot;</span><span class="p">)</span>
+<span class="n">lst</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Enter the required no. of recommendations:10
+Enter the name of a movie that you liked:Toy Story (1995)
+
+
+/home/hendra_herviawan/bin/anaconda3/lib/python3.6/site-packages/ipykernel_launcher.py:5: RuntimeWarning: invalid value encountered in double_scalars
+  &quot;&quot;&quot;
+
+
+Recommendations for you:
+
+
+
+
+
+[(&#39;Toy Story 2 (1999)&#39;, 0.38751909607714241),
+ (&quot;Bug&#39;s Life, A (1998)&quot;, 0.29185057100728379),
+ (&#39;Lion King, The (1994)&#39;, 0.26797063953540978),
+ (&#39;Aladdin (1992)&#39;, 0.24245219707788779),
+ (&#39;Monsters, Inc. (2001)&#39;, 0.23609185999396132),
+ (&#39;Shrek (2001)&#39;, 0.23379248872321592),
+ (&#39;Dark Knight, The (2008)&#39;, 0.22285149745651747),
+ (&#39;Spider-Man (2002)&#39;, 0.22253962836326829),
+ (&#39;Basic Instinct (1992)&#39;, 0.2213613466749314),
+ (&#39;Incredibles, The (2004)&#39;, 0.22061205440681195)]
+</pre></div>
+
+
+<p>The recommendation is good but not perfect, for "Toy story (1995)" pearsone correlation recommend Disney &amp; Animated Movie. More reseach still need to do for filter "Basic Instinct (1992)" appear in our recommendation.</p>
+<h3>Reference</h3>
+<ol>
+<li>https://www.youtube.com/watch?v=-8BrRnFzq_Y</li>
+<li>https://mjeet14.wordpress.com/2017/02/16/movie-recommendation-system-in-python/</li>
+</ol>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

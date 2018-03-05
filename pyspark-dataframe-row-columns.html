@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Pyspark: Dataframe Row & Columns | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/pyspark-dataframe-row-columns.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="Data Wrangling-Pyspark: Dataframe Row & Columns">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Pyspark: Dataframe Row & Columns
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2018-02-18T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Sun 18 February 2018
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/data-science.html">Data Science</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/data-wrangling.html">#Data Wrangling</a>,               <a href="/tag/pyspark.html">#Pyspark</a>,               <a href="/tag/apache-spark.html">#Apache Spark</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <p>If you've used R or even the pandas library with Python you are probably already familiar with the concept of DataFrames. Spark DataFrame expand on a lot of these concepts, allowing you to transfer that knowledge easily by understanding the simple syntax of Spark DataFrames. Remember that the main advantage to using Spark DataFrames vs those other programs is that Spark can handle data across many RDDs, huge data sets that would never fit on a single computer. </p>
+<h3>Creating Dataframe</h3>
+<p>To create dataframe first we need to create spark session</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+
+<span class="c1"># May take a little while on a local computer</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">&quot;Basics&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="n">spark</span>
+</pre></div>
+
+
+<h2>Create Dataframe from file</h2>
+<h3>Create Schema manually</h3>
+<p>Next we need to create the list of Structure fields</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql.types</span> <span class="kn">import</span> <span class="n">StructField</span><span class="p">,</span> <span class="n">StringType</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">,</span> <span class="n">StructType</span>
+
+<span class="n">data_schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">StructField</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">(),</span> <span class="bp">True</span><span class="p">),</span>
+              <span class="n">StructField</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">StringType</span><span class="p">(),</span> <span class="bp">True</span><span class="p">)]</span>
+
+<span class="n">final_struc</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">data_schema</span><span class="p">)</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="s1">&#39;people.json&#39;</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">final_struc</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>root
+ |-- age: integer (nullable = true)
+ |-- name: string (nullable = true)
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Columns</span>
+<span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[&#39;age&#39;, &#39;name&#39;]
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Column Data Type</span>
+<span class="n">df</span><span class="o">.</span><span class="n">dtypes</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[(&#39;age&#39;, &#39;bigint&#39;), (&#39;name&#39;, &#39;string&#39;)]
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Descriptive Statistic</span>
+<span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+------------------+-------+
+|summary|               age|   name|
++-------+------------------+-------+
+|  count|                 2|      3|
+|   mean|              24.5|   null|
+| stddev|7.7781745930520225|   null|
+|    min|                19|   Andy|
+|    max|                30|Michael|
++-------+------------------+-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Showing only a data</span>
+<span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+
+| age|   name|
++----+-------+
+|null|Michael|
++----+-------+
+only showing top 1 row
+</pre></div>
+
+
+<h2>Dataframe Selection</h2>
+<div class="highlight"><pre><span></span><span class="c1"># df[&#39;age&#39;] is a pyspark.sql.column.Column</span>
+<span class="nb">type</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">])</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>pyspark.sql.column.Column
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># df[&#39;age&#39;] will not showing any thing</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Column&lt;b&#39;age&#39;&gt;
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Select column</span>
+<span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>DataFrame[age: int]
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Use show() to show the value of Dataframe</span>
+<span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+
+| age|
++----+
+|null|
+|  30|
+|  19|
++----+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Return two Row but content will not displayed</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[Row(age=None, name=&#39;Michael&#39;), Row(age=30, name=&#39;Andy&#39;)]
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Select multiple column</span>
+<span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+
+| age|   name|
++----+-------+
+|null|Michael|
+|  30|   Andy|
+|  19| Justin|
++----+-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Select DataFrame approach</span>
+<span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">age</span> <span class="o">==</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+---+----+
+|age|name|
++---+----+
+| 30|Andy|
++---+----+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Register the DataFrame as a SQL temporary view</span>
+<span class="n">df</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">&quot;people&quot;</span><span class="p">)</span>
+<span class="n">sql_results</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM people&quot;</span><span class="p">)</span>
+<span class="n">sql_results</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+
+| age|   name|
++----+-------+
+|null|Michael|
+|  30|   Andy|
+|  19| Justin|
++----+-------+
+</pre></div>
+
+
+<h2>Dataframe Column</h2>
+<h3>Rename column</h3>
+<div class="highlight"><pre><span></span><span class="c1">#Rename column</span>
+<span class="n">df</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;Age&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+
+| Age|   name|
++----+-------+
+|null|Michael|
+|  30|   Andy|
+|  19| Justin|
++----+-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Convert to Dataframe</span>
+<span class="n">df</span><span class="o">.</span><span class="n">toDF</span><span class="p">(</span><span class="s1">&#39;Age&#39;</span><span class="p">,</span> <span class="s1">&#39;Name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+
+| Age|   Name|
++----+-------+
+|null|Michael|
+|  30|   Andy|
+|  19| Justin|
++----+-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Operation/Function and Column Alias</span>
+<span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;doubleage&#39;</span><span class="p">,</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+---------+
+| age|   name|doubleage|
++----+-------+---------+
+|null|Michael|     null|
+|  30|   Andy|       60|
+|  19| Justin|       38|
++----+-------+---------+
+</pre></div>
+
+
+<h3>Create new column</h3>
+<div class="highlight"><pre><span></span><span class="c1"># Create new column based on pyspark.sql.column.Column</span>
+<span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;newage&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+-------+------+
+| age|   name|newage|
++----+-------+------+
+|null|Michael|  null|
+|  30|   Andy|    30|
+|  19| Justin|    19|
++----+-------+------+
+</pre></div>
+
+
+<h3>Drop column</h3>
+<div class="highlight"><pre><span></span><span class="c1"># Drop column</span>
+<span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+----+
+| age|
++----+
+|null|
+|  30|
+|  19|
++----+
+</pre></div>
+
+
+<h2>Dataframe Row</h2>
+<div class="highlight"><pre><span></span><span class="c1"># Select Row based on condition</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">age</span> <span class="o">==</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="n">row</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Dataframe row is pyspark.sql.types.Row</span>
+<span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>pyspark.sql.types.Row
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Count</span>
+<span class="n">row</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>1
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Index</span>
+<span class="n">row</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>0
+</pre></div>
+
+
+<h3>Rows can be called to turn into dictionaries</h3>
+<div class="highlight"><pre><span></span><span class="c1"># Return Dictionary</span>
+<span class="n">row</span><span class="o">.</span><span class="n">asDict</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>dict_values([30, &#39;Andy&#39;])
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Return Value in Dictionary</span>
+<span class="n">row</span><span class="o">.</span><span class="n">asDict</span><span class="p">()[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>30
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Print Row as Dictionary</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+<span class="c1">#     print(type(item))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>30
+Andy
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Print Row as Dictionary</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">asDict</span><span class="p">():</span>
+<span class="c1">#     print(type(item))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>age
+name
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Print Dictionary Keys</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">asDict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<span class="c1">#     print(type(item))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>age
+name
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Print Dictionary values</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">asDict</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+<span class="c1">#     print(type(item))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>30
+Andy
+</pre></div>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

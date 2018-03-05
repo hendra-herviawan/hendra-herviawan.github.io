@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  SparkSQL: Select & Filter | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/sparksql-select-filter.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="Data-Wrangling-sparksql-select-filter">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  SparkSQL: Select & Filter
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2017-03-12T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Sun 12 March 2017
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/data-science.html">Data Science</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/data-wrangling.html">#Data Wrangling</a>,               <a href="/tag/pyspark.html">#Pyspark</a>,               <a href="/tag/apache-spark.html">#Apache Spark</a>,               <a href="/tag/sparksql.html">#SparkSQL</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+
+<span class="n">spark</span><span class="o">=</span><span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s1">&#39;SparkSQL2&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="n">spark</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">Row</span>
+
+<span class="c1"># Creation of the list from where the RDD is going to be created</span>
+<span class="n">acTransList</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SB10001,1000&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10002,1200&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10003,8000&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10004,400&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10005,300&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10006,10000&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10007,500&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10008,56&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10009,30&quot;</span><span class="p">,</span><span class="s2">&quot;SB10010,7000&quot;</span><span class="p">,</span> <span class="s2">&quot;CR10001,7000&quot;</span><span class="p">,</span> <span class="s2">&quot;SB10002,-10&quot;</span><span class="p">]</span>
+
+<span class="c1"># acTransList = [x.split(&#39;,&#39;) for x in acTransList]</span>
+
+<span class="c1"># x = []</span>
+<span class="c1"># y = []</span>
+<span class="c1"># for accNo,trnAmount in acTransList:</span>
+<span class="c1">#     x.append(accNo)</span>
+<span class="c1">#     y.append(float(trnAmount))</span>
+
+<span class="c1"># df = pd.DataFrame({&#39;accNo&#39;:x,&#39;trnAmount&#39;:y})</span>
+<span class="c1"># acTransDF = spark.createDataFrame(df)</span>
+
+<span class="c1"># Create the DataFrame</span>
+<span class="n">acTransDF</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">parallelize</span><span class="p">(</span><span class="n">acTransList</span><span class="p">)</span>\
+   <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">trans</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>\
+   <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">Row</span><span class="p">(</span><span class="n">accNo</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tranAmount</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span><span class="o">.</span><span class="n">toDF</span><span class="p">()</span>
+
+<span class="c1"># Register temporary table in the DataFrame for using it in SQL</span>
+<span class="n">acTransDF</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">&quot;trans&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Print the structure of the DataFrame</span>
+<span class="n">acTransDF</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>root
+ |-- accNo: string (nullable = true)
+ |-- tranAmount: double (nullable = true)
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">acTransDF</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10001|    1000.0|
+|SB10002|    1200.0|
+|SB10003|    8000.0|
+|SB10004|     400.0|
+|SB10005|     300.0|
+|SB10006|   10000.0|
+|SB10007|     500.0|
+|SB10008|      56.0|
+|SB10009|      30.0|
+|SB10010|    7000.0|
+|CR10001|    7000.0|
+|SB10002|     -10.0|
++-------+----------+
+</pre></div>
+
+
+<h2>RDD</h2>
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the sum using mixing of DataFrame and RDD like operations</span>
+<span class="n">sumAmountByMixing</span> <span class="o">=</span> <span class="n">goodTransRecords</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">trans</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">tranAmount</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="p">:</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">)</span>
+<span class="n">sumAmountByMixing</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>28486.0
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the maximum using mixing of DataFrame and RDD like operations</span>
+<span class="n">maxAmountByMixing</span> <span class="o">=</span> <span class="n">goodTransRecords</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">trans</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">tranAmount</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="p">:</span> <span class="n">a</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span> <span class="k">else</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">maxAmountByMixing</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>10000.0
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the minimum using mixing of DataFrame and RDD like operations</span>
+<span class="n">minAmountByMixing</span> <span class="o">=</span> <span class="n">goodTransRecords</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">trans</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">tranAmount</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="p">:</span> <span class="n">a</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span> <span class="k">else</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">minAmountByMixing</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>30.0
+</pre></div>
+
+
+<h2>SELECT</h2>
+<div class="highlight"><pre><span></span><span class="c1"># create another DataFrame containing the good transaction records</span>
+<span class="n">goodTransRecords</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT accNo, tranAmount FROM trans WHERE accNo like &#39;SB%&#39; AND tranAmount &gt; 0&quot;</span><span class="p">)</span>
+
+<span class="c1"># Register temporary table in the DataFrame for using it in SQL</span>
+<span class="n">goodTransRecords</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">&quot;goodtrans&quot;</span><span class="p">)</span>
+
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">goodTransRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10001|    1000.0|
+|SB10002|    1200.0|
+|SB10003|    8000.0|
+|SB10004|     400.0|
+|SB10005|     300.0|
+|SB10006|   10000.0|
+|SB10007|     500.0|
+|SB10008|      56.0|
+|SB10009|      30.0|
+|SB10010|    7000.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Use SQL to create another DataFrame containing the bad account records (NOT &#39;SB%&#39;)</span>
+<span class="n">badAccountRecords</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT accNo, tranAmount FROM trans WHERE accNo NOT like &#39;SB%&#39;&quot;</span><span class="p">)</span>
+<span class="n">badAccountRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|CR10001|    7000.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Negative tranAmount</span>
+<span class="c1"># Use SQL to create another DataFrame containing the bad amount records</span>
+<span class="n">badAmountRecords</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT accNo, tranAmount FROM trans WHERE tranAmount &lt; 0&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">badAmountRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10002|     -10.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Do the union of two DataFrames and create another DataFrame</span>
+<span class="n">badTransRecords</span> <span class="o">=</span> <span class="n">badAccountRecords</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">badAmountRecords</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">badTransRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|CR10001|    7000.0|
+|SB10002|     -10.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the sum</span>
+<span class="n">sumAmount</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT sum(tranAmount)as sum FROM goodtrans&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">sumAmount</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+
+|    sum|
++-------+
+|28486.0|
++-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the maximum</span>
+<span class="n">maxAmount</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;SELECT max(tranAmount) as max FROM goodtrans&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">maxAmount</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+
+|    max|
++-------+
+|10000.0|
++-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># select good account numbers</span>
+<span class="c1"># Use SQL to create another DataFrame containing the good account numbers</span>
+<span class="n">A</span> <span class="o">=</span> <span class="s2">&quot;SELECT DISTINCT accNo FROM trans WHERE accNo like &#39;SB%&#39; ORDER BY accNo&quot;</span>
+<span class="n">B</span> <span class="o">=</span> <span class="s2">&quot;SELECT DISTINCT accNo FROM goodtrans&quot;</span>
+<span class="n">goodAccNos</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">goodAccNos</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+
+|  accNo|
++-------+
+|SB10001|
+|SB10002|
+|SB10003|
+|SB10004|
+|SB10005|
+|SB10006|
+|SB10007|
+|SB10008|
+|SB10009|
+|SB10010|
++-------+
+</pre></div>
+
+
+<h2>FILTER</h2>
+<div class="highlight"><pre><span></span><span class="c1"># Create the DataFrame using API for the good transaction records</span>
+<span class="n">goodTransRecords</span> <span class="o">=</span> <span class="n">acTransDF</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;accNo like &#39;SB%&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;tranAmount &gt; 0&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">goodTransRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10001|    1000.0|
+|SB10002|    1200.0|
+|SB10003|    8000.0|
+|SB10004|     400.0|
+|SB10005|     300.0|
+|SB10006|   10000.0|
+|SB10007|     500.0|
+|SB10008|      56.0|
+|SB10009|      30.0|
+|SB10010|    7000.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Create the DataFrame using API for the high value transaction records</span>
+<span class="n">highValueTransRecords</span> <span class="o">=</span> <span class="n">goodTransRecords</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;tranAmount &gt; 1000&quot;</span><span class="p">)</span>
+
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">highValueTransRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10002|    1200.0|
+|SB10003|    8000.0|
+|SB10006|   10000.0|
+|SB10010|    7000.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Create the DataFrame using API for the bad account records</span>
+<span class="n">badAccountRecords</span> <span class="o">=</span> <span class="n">acTransDF</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;accNo NOT like &#39;SB%&#39;&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">badAccountRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|CR10001|    7000.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Create the DataFrame using API for the bad amount records</span>
+<span class="n">badAmountRecords</span> <span class="o">=</span> <span class="n">acTransDF</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;tranAmount &lt; 0&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">badAmountRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|SB10002|     -10.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Do the union of two DataFrames and create another DataFrame</span>
+<span class="n">badTransRecords</span> <span class="o">=</span> <span class="n">badAccountRecords</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">badAmountRecords</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">badTransRecords</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+----------+
+|  accNo|tranAmount|
++-------+----------+
+|CR10001|    7000.0|
+|SB10002|     -10.0|
++-------+----------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Create the DataFrame using API for the good account numbers</span>
+<span class="n">goodAccNos</span> <span class="o">=</span> <span class="n">acTransDF</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;accNo like &#39;SB%&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;accNo&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;accNo&quot;</span><span class="p">)</span>
+<span class="c1"># Show the first few records of the DataFrame</span>
+<span class="n">goodAccNos</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+
+|  accNo|
++-------+
+|SB10001|
+|SB10002|
+|SB10003|
+|SB10004|
+|SB10005|
+|SB10006|
+|SB10007|
+|SB10008|
+|SB10009|
+|SB10010|
++-------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>
+</pre></div>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

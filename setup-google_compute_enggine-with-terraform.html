@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Setup Google Compute Enggine (GCE) using Terraform | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/setup-google_compute_enggine-with-terraform.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="How to create google compute enggine using Terraform">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Setup Google Compute Enggine (GCE) using Terraform
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2018-01-18T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Thu 18 January 2018
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/devops.html">DevOps</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/gcp.html">#GCP</a>,               <a href="/tag/terraform.html">#Terraform</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <h3>Pre-requisites</h3>
+<ol>
+<li>Terraform</li>
+<li>Google Cloud Platform account</li>
+<li>GCP API Authentication credentials</li>
+</ol>
+<p>Script to create Google Compute Enggine with Terrafor.</p>
+<div class="highlight"><pre><span></span><span class="c1">// Variable</span>
+<span class="nx">variable</span> <span class="s2">&quot;region&quot;</span> <span class="p">{</span>
+  <span class="k">default</span> <span class="o">=</span> <span class="s2">&quot;us-east1-d&quot;</span>
+<span class="p">}</span>
+
+<span class="nx">variable</span> <span class="s2">&quot;project&quot;</span> <span class="p">{</span>
+  <span class="k">default</span> <span class="o">=</span> <span class="s2">&quot;vital-ensign-188214&quot;</span>
+<span class="p">}</span>
+
+<span class="c1">// Provider</span>
+<span class="nx">provider</span> <span class="s2">&quot;google&quot;</span> <span class="p">{</span>
+  <span class="nx">credentials</span> <span class="o">=</span> <span class="s2">&quot;${file(&quot;</span><span class="nx">myfirstproject</span><span class="o">-</span><span class="nx">teraform</span><span class="o">-</span><span class="nx">ce</span><span class="p">.</span><span class="nx">json</span><span class="s2">&quot;)}&quot;</span>
+  <span class="nx">project</span>     <span class="o">=</span> <span class="s2">&quot;${var.project}&quot;</span>
+  <span class="nx">region</span>      <span class="o">=</span> <span class="s2">&quot;${var.region}&quot;</span>
+<span class="p">}</span>
+
+<span class="c1">// Google Compute Instance</span>
+<span class="nx">resource</span> <span class="s2">&quot;google_compute_instance&quot;</span> <span class="s2">&quot;test&quot;</span> <span class="p">{</span>
+  <span class="nx">count</span>        <span class="o">=</span> <span class="mi">1</span>                        <span class="c1">// </span>
+  <span class="nx">name</span>         <span class="o">=</span> <span class="s2">&quot;test${count.index + 1}&quot;</span> <span class="c1">// yields &quot;test1&quot;, &quot;test2&quot;, etc. It&#39;s also the machine&#39;s name and hostname</span>
+  <span class="nx">machine_type</span> <span class="o">=</span> <span class="s2">&quot;f1-micro&quot;</span>               <span class="c1">// smallest (CPU &amp;amp; RAM) available instance</span>
+  <span class="nx">zone</span>         <span class="o">=</span> <span class="s2">&quot;${var.region}&quot;</span>          <span class="c1">//</span>
+
+  <span class="nx">boot_disk</span> <span class="p">{</span>
+    <span class="nx">initialize_params</span> <span class="p">{</span>
+      <span class="nx">image</span> <span class="o">=</span> <span class="s2">&quot;ubuntu-1710&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">network_interface</span> <span class="p">{</span>
+    <span class="nx">network</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+
+    <span class="nx">access_config</span> <span class="p">{</span>
+      <span class="c1">// Ephemeral IP - leaving this block empty will generate a new external IP and assign it to the machine</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This simple script is devided into 3 part: Variable, Provider, Resource</p>
+<h3>Variable</h3>
+<ol>
+<li>Region: Region where Google Compute Enginne will be deploy (<a href="https://cloud.google.com/compute/docs/regions-zones/">Available GCP Region</a>)</li>
+<li>Project: GCP Project</li>
+</ol>
+<h3>Provider</h3>
+<p>1.Credential: Contain authenticated requared to create resource (Google Cloud Platform -&gt; API Manager -&gt; Credentials -&gt; Create Credentials -&gt; Service account key)
+1. Region &amp; Project: We already define this in variable</p>
+<h3>Resource</h3>
+<ol>
+<li><a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html">Google Compute Instance</a>: Manages a VM instance resource within GCE. An instance is a virtual machine (VM) hosted on Google's infrastructure.</li>
+<li><a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html#boot_disk">boot_disk</a>: The boot disk for the instance.</li>
+<li><a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html#network_interface">network_interface</a>: Networks to attach to the instance</li>
+</ol>
+<h2>Terraform Commands</h2>
+<ul>
+<li>terraform get: The terraform get command is used to download and update modules mentioned in the root module.</li>
+<li>terraform plan: create an execution plan</li>
+<li>terraform apply: apply the changes required to reach the desired state of the configuration, or the pre-determined set of actions generated by a terraform plan execution plan.</li>
+<li>terraform destroy: destroy the Terraform-managed infrastructure.</li>
+</ul>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

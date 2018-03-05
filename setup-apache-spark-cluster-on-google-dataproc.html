@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Setup Apache Spark Cluster on Google Dataproc | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/setup-apache-spark-cluster-on-google-dataproc.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="How to setup apache spark cluster">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Setup Apache Spark Cluster on Google Dataproc
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2018-01-01T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Mon 01 January 2018
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/devops.html">DevOps</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/gcp.html">#GCP</a>,               <a href="/tag/spark.html">#Spark</a>,               <a href="/tag/dataproc.html">#Dataproc</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <p><img alt="Apache Spark Architecture" src="https://spark.apache.org/docs/latest/img/cluster-overview.png"></p>
+<h2>1.<a href="https://cloud.google.com/dataproc">Dataproc</a> Console - Create Cluster</h2>
+<p>Cloud Dataproc is a fast, easy-to-use, fully-managed cloud service for running Apache Spark and Apache Hadoop clusters in a simpler, more cost-efficient way.<br>
+<img alt="Create Google Dataproc Cluster" src="images/4532/1.png"></p>
+<h2>2.Master Node</h2>
+<p>An external service for acquiring resources on the cluster (e.g. standalone manager, Mesos, YARN).<br>
+<img alt="Create Master Node" src="images/4532/2.png"></p>
+<h2>3. Worker Node</h2>
+<p>Any node that can run application code in the cluster.<br>
+<img alt="Create Worker Node" src="images/4532/3.png"></p>
+<h2>4.<a href="https://cloud.google.com/preemptible-vms/">Preemtible</a> Worker Node</h2>
+<p>Preemtible is Affordable, short-lived compute instances suitable for batch jobs and fault-tolerant workloads.<br>
+<img alt="Preemtible Worker Node" src="images/4532/4.png"></p>
+<h2>5. Cloud Storage Staging Bucket</h2>
+<p>To make your cluster persistance you need to specific where the file will be save. <br>
+<img alt="Staging Bucket" src="images/4532/5.png"></p>
+<h2>6. Initialization Action</h2>
+<p>Specify initialization actions in executables or scripts that Cloud Dataproc will run on all nodes in your Cloud Dataproc cluster immediately after the cluster is set up. You can find frequently used and other sample initialization action scripts at the following locations:</p>
+<ul>
+<li><a href="https://github.com/GoogleCloudPlatform/dataproc-initialization-actions">GitHub repository</a></li>
+<li><a href="https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions">Cloud Storage</a> - in shared bucket</li>
+</ul>
+<div class="highlight"><pre><span></span>&gt;&gt; gsutil ls gs://dataproc-initialization-actions
+
+gs://dataproc-initialization-actions/CONTRIBUTING.md
+gs://dataproc-initialization-actions/LICENSE
+gs://dataproc-initialization-actions/README.md
+gs://dataproc-initialization-actions/favicon.ico
+gs://dataproc-initialization-actions/apache-zeppelin/
+gs://dataproc-initialization-actions/bigdl/
+gs://dataproc-initialization-actions/cloud-sql-proxy/
+gs://dataproc-initialization-actions/conda/
+gs://dataproc-initialization-actions/datalab/
+gs://dataproc-initialization-actions/drill/
+gs://dataproc-initialization-actions/flink/
+gs://dataproc-initialization-actions/ganglia/
+gs://dataproc-initialization-actions/hive-hcatalog/
+gs://dataproc-initialization-actions/hue/
+gs://dataproc-initialization-actions/ipython-notebook/
+gs://dataproc-initialization-actions/jupyter/
+gs://dataproc-initialization-actions/kafka/
+gs://dataproc-initialization-actions/list-consistency-cache/
+gs://dataproc-initialization-actions/oozie/
+gs://dataproc-initialization-actions/post-init/
+gs://dataproc-initialization-actions/presto/
+gs://dataproc-initialization-actions/stackdriver/
+gs://dataproc-initialization-actions/tez/
+gs://dataproc-initialization-actions/user-environment/
+gs://dataproc-initialization-actions/util/
+gs://dataproc-initialization-actions/zeppelin/
+gs://dataproc-initialization-actions/zookeeper/
+</pre></div>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>

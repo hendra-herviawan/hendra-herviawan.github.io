@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>  Build Movie Recommendation with Apache Spark | M Hendra Herviawan
+</title>
+  <link rel="canonical" href="/build-movie-recommendation-with-apache-spark.html">
+
+
+  <link rel="stylesheet" href="/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="/theme/css/theme.css">
+
+  
+  <meta name="description" content="movie recommendation with apache spark based on ALS">
+
+
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+<div class="row">
+  <div class="col-sm-12">
+    <h1 class="title"><a href="/">M Hendra Herviawan</a></h1>
+      <ul class="list-inline">
+          <li class="list-inline-item"><a href="http://getpelican.com/" target="_blank">Pelican</a></li>
+          <li class="list-inline-item"><a href="http://python.org/" target="_blank">Python.org</a></li>
+          <li class="list-inline-item"><a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a></li>
+          <li class="list-inline-item"><a href="#" target="_blank">You can modify those links in your config file</a></li>
+      </ul>
+  </div>
+</div>    </div>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>  Build Movie Recommendation with Apache Spark
+</h1>
+      <hr>
+  <article class="article">
+    <header>
+      <ul class="list-inline">
+        <li class="list-inline-item text-muted" title="2017-01-13T00:00:00+07:00">
+          <i class="fa fa-clock-o"></i>
+          Fri 13 January 2017
+        </li>
+        <li class="list-inline-item">
+          <i class="fa fa-folder-open-o"></i>
+          <a href="/category/data-science.html">Data Science</a>
+        </li>
+          <li class="list-inline-item">
+            <i class="fa fa-user-o"></i>
+              <a href="/author/m-hendra-herviawan.html">M Hendra Herviawan</a>          </li>
+          <li class="list-inline-item">
+            <i class="fa fa-files-o"></i>
+              <a href="/tag/recommendation.html">#Recommendation</a>,               <a href="/tag/pyspark.html">#Pyspark</a>,               <a href="/tag/apache-spark.html">#Apache Spark</a>          </li>
+      </ul>
+    </header>
+    <div class="content">
+      <p>The underlying assumption about collaborative recommendation is that if a user A has the same opinion as a user B on an issue, A is more likely to have B's opinion on a different issue x than to have the opinion on x of a user chosen randomly. With Collaborative filtering we make predictions (filtering) about the interests of a user by collecting preferences or taste information from many users (collaborating). </p>
+<p>The image below (from Wikipedia) shows an example of collaborative filtering. At first, people rate different items (like videos, images, games). Then, the system makes predictions about a user's rating for an item not rated yet. The new predictions are built upon the existing ratings of other users with similar ratings with the active user. In the image, the system predicts that the user will not like the video.</p>
+<p><img src=https://upload.wikimedia.org/wikipedia/commons/5/52/Collaborative_filtering.gif /></p>
+<h3>Download Movielens Dataset</h3>
+<div class="highlight"><pre><span></span><span class="n">complete_dataset_url</span> <span class="o">=</span> <span class="s1">&#39;http://files.grouplens.org/datasets/movielens/ml-latest.zip&#39;</span>
+<span class="n">small_dataset_url</span> <span class="o">=</span> <span class="s1">&#39;http://files.grouplens.org/datasets/movielens/ml-latest-small.zip&#39;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">datasets_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;input&#39;</span><span class="p">)</span>
+
+<span class="n">complete_dataset_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datasets_path</span><span class="p">,</span> <span class="s1">&#39;ml-latest.zip&#39;</span><span class="p">)</span>
+<span class="n">small_dataset_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datasets_path</span><span class="p">,</span> <span class="s1">&#39;ml-latest-small.zip&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">urllib.request</span>
+
+<span class="n">small_f</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span> <span class="p">(</span><span class="n">small_dataset_url</span><span class="p">,</span> <span class="n">small_dataset_path</span><span class="p">)</span>
+<span class="n">complete_f</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span> <span class="p">(</span><span class="n">complete_dataset_url</span><span class="p">,</span> <span class="n">complete_dataset_path</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">zipfile</span>
+
+<span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">small_dataset_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
+    <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">datasets_path</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">complete_dataset_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
+    <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">datasets_path</span><span class="p">)</span>
+</pre></div>
+
+
+<h2>Loading and parsing datasets</h2>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s1">&#39;recommend&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="s1">&#39;input/ml-latest/ratings.csv&#39;</span><span class="p">,</span> <span class="n">inferSchema</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>root
+ |-- userId: integer (nullable = true)
+ |-- movieId: integer (nullable = true)
+ |-- rating: double (nullable = true)
+ |-- timestamp: integer (nullable = true)
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Count null value</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.functions</span> <span class="kn">import</span> <span class="n">col</span><span class="p">,</span><span class="nb">sum</span>
+<span class="n">data</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+------+-------+------+---------+
+|userId|movieId|rating|timestamp|
++------+-------+------+---------+
+|     0|      0|     0|        0|
++------+-------+------+---------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Count Null value</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.functions</span> <span class="kn">import</span> <span class="n">lit</span><span class="p">,</span> <span class="n">col</span>
+
+<span class="n">rows</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;summary&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span><span class="p">)</span>
+<span class="n">summary</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="p">((</span><span class="n">lit</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">-</span><span class="n">col</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+------+-------+------+---------+
+|userId|movieId|rating|timestamp|
++------+-------+------+---------+
+|   0.0|    0.0|   0.0|      0.0|
++------+-------+------+---------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;No. of row: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">data</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+<span class="n">data</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>No. of row: 100004
++------+-------+------+----------+
+|userId|movieId|rating| timestamp|
++------+-------+------+----------+
+|     1|     31|   2.5|1260759144|
+|     1|   1029|   3.0|1260759179|
+|     1|   1061|   3.0|1260759182|
+|     1|   1129|   2.0|1260759185|
+|     1|   1172|   4.0|1260759205|
++------+-------+------+----------+
+only showing top 5 rows
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># count, mean, std, min &amp; max</span>
+<span class="n">data</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+------------------+------------------+------------------+--------------------+
+|summary|            userId|           movieId|            rating|           timestamp|
++-------+------------------+------------------+------------------+--------------------+
+|  count|            100004|            100004|            100004|              100004|
+|   mean| 347.0113095476181|12548.664363425463| 3.543608255669773|1.1296390869392424E9|
+| stddev|195.16383797819535|26369.198968815268|1.0580641091070326|1.9168582602710962E8|
+|    min|                 1|                 1|               0.5|           789652009|
+|    max|               671|            163949|               5.0|          1476640644|
++-------+------------------+------------------+------------------+--------------------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">#Split dataset to train and test</span>
+<span class="n">train_data</span><span class="p">,</span> <span class="n">test_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">([</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+</pre></div>
+
+
+<p>We can do a split to evaluate how well our model performed, but keep in mind that it is very hard to know conclusively how well a recommender system is truly working for some topics. Especially if subjectivity is involved, for example not everyone that loves star wars is going to love star trek, even though a recommendation system may suggest otherwise.</p>
+<h2>Alternating Least Squares (ALS)</h2>
+<p>Spark MLlib library for Machine Learning provides a Collaborative Filtering implementation by using Alternating Least Squares. The implementation in MLlib has these parameters:</p>
+<ul>
+<li>numBlocks is the number of blocks used to parallelize computation (set to -1 to auto-configure).</li>
+<li>rank is the number of latent factors in the model.</li>
+<li>iterations is the number of iterations to run.</li>
+<li>lambda specifies the regularization parameter in ALS.</li>
+<li>implicitPrefs specifies whether to use the explicit feedback ALS variant or one adapted for implicit feedback data.</li>
+<li>alpha is a parameter applicable to the implicit feedback variant of ALS that governs the baseline confidence in preference observations.</li>
+</ul>
+<p>Let's see this all in action!</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyspark.ml.recommendation</span> <span class="kn">import</span> <span class="n">ALS</span>
+<span class="kn">from</span> <span class="nn">pyspark.ml.evaluation</span> <span class="kn">import</span> <span class="n">RegressionEvaluator</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># Build the recommendation model using ALS on the training data</span>
+<span class="n">als</span> <span class="o">=</span> <span class="n">ALS</span><span class="p">(</span><span class="n">maxIter</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">regParam</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">coldStartStrategy</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span>\
+          <span class="n">userCol</span><span class="o">=</span><span class="s1">&#39;userId&#39;</span><span class="p">,</span> <span class="n">itemCol</span><span class="o">=</span><span class="s1">&#39;movieId&#39;</span><span class="p">,</span> <span class="n">ratingCol</span><span class="o">=</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">als</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_data</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Factorized user matrix with rank = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">model</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">userFactors</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Factorized item matrix with rank = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">model</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">itemFactors</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Factorized user matrix with rank = 10
++---+--------------------+
+| id|            features|
++---+--------------------+
+| 10|[-0.18798763, -0....|
+| 20|[-0.002044285, -0...|
+| 30|[-0.19509034, -0....|
+| 40|[-0.55244017, -0....|
+| 50|[-0.3752768, -0.4...|
++---+--------------------+
+only showing top 5 rows
+
+--------------------------------------------------
+Factorized item matrix with rank = 10
++---+--------------------+
+| id|            features|
++---+--------------------+
+| 10|[-0.1918898, -0.6...|
+| 20|[-0.38074443, 0.4...|
+| 30|[-0.84450626, -0....|
+| 40|[-0.30144945, -0....|
+| 50|[-0.664701, -0.73...|
++---+--------------------+
+only showing top 5 rows
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Recommended top users (e.g. 1 top user) for all items with the corresponding predicted ratings:&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">recommendForAllItems</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Recommended top items (e.g. 1 top item) for all users with the corresponding predicted ratings:&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">recommendForAllUsers</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Recommended top users (e.g. 1 top user) for all items with the corresponding predicted ratings:
++-------+----------------+
+|movieId| recommendations|
++-------+----------------+
+|   1580|[[46,5.1127443]]|
+|   5300|[[477,5.093527]]|
+|   6620| [[71,4.573213]]|
+|   7340|[[656,4.489139]]|
+|  32460| [[46,5.134292]]|
++-------+----------------+
+only showing top 5 rows
+
+--------------------------------------------------
+Recommended top items (e.g. 1 top item) for all users with the corresponding predicted ratings:
++------+-------------------+
+|userId|    recommendations|
++------+-------------------+
+|   471|  [[3653,5.175575]]|
+|   463|[[83411,4.8556952]]|
+|   496| [[59684,5.243225]]|
+|   148| [[83411,5.363898]]|
+|   540|  [[8530,5.641106]]|
++------+-------------------+
+only showing top 5 rows
+</pre></div>
+
+
+<h2>Make predictions on test_data</h2>
+<div class="highlight"><pre><span></span><span class="c1">#Let see how the model perform</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+<span class="n">predictions</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+------+-------+------+----------+----------+
+|userId|movieId|rating| timestamp|prediction|
++------+-------+------+----------+----------+
+|128291|    148|   3.0| 945456963| 2.6328552|
+|194356|    148|   3.5|1195002533| 2.0075881|
+|123330|    148|   4.0| 939330967|  3.164426|
+|140405|    148|   2.0|1491812543|  2.504307|
+|103660|    148|   4.0| 830077276| 3.2916343|
+|265662|    148|   3.0| 832686930| 2.6706219|
+|128560|    148|   3.0| 833165538| 3.5371344|
+|249913|    148|   2.0| 915406133| 2.0586205|
+|255659|    148|   5.0| 829576446| 3.6189497|
+|219731|    148|   4.0| 833661877| 2.7767935|
+| 84661|    148|   3.0| 837059383| 2.6634388|
+|219886|    148|   3.0| 915554312| 3.1332464|
+| 70913|    148|   5.0| 832703670| 3.3639038|
+| 73307|    148|   3.0| 857133054| 3.1618505|
+| 49761|    148|   1.0| 842886116|  2.196462|
+|117395|    148|   2.0| 945907892| 2.9700744|
+|264631|    148|   3.0| 970170090|  2.694469|
+|221257|    148|   2.0| 844627287| 1.9263531|
+|124567|    148|   3.0| 838905641|  2.998578|
+|224850|    148|   3.0|1058985403|  3.010354|
++------+-------+------+----------+----------+
+only showing top 20 rows
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">predictions</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>root
+ |-- userId: integer (nullable = true)
+ |-- movieId: integer (nullable = true)
+ |-- rating: double (nullable = true)
+ |-- timestamp: integer (nullable = true)
+ |-- prediction: float (nullable = true)
+</pre></div>
+
+
+<h2>Evaluate the predictions</h2>
+<p>Evaluate the model by computing the RMSE on the test data</p>
+<div class="highlight"><pre><span></span><span class="c1"># check the root mean squared error</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">RegressionEvaluator</span><span class="p">(</span><span class="n">metricName</span><span class="o">=</span><span class="s1">&#39;rmse&#39;</span><span class="p">,</span> <span class="n">predictionCol</span><span class="o">=</span><span class="s1">&#39;prediction&#39;</span><span class="p">,</span> <span class="n">labelCol</span><span class="o">=</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span>
+<span class="n">rmse</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Root mean squared error of the test_data: </span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">rmse</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Root mean squared error of the test_data: 0.8274
+</pre></div>
+
+
+<p>The RMSE described our error in terms of the stars rating column.
+So now that we have the model, how would you actually supply a recommendation to a user?</p>
+<p>The same way we did with the test data! For example:</p>
+<div class="highlight"><pre><span></span><span class="c1"># see historical rating of the user</span>
+<span class="n">user_history</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="s1">&#39;userId&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">user_history</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+------+-------+------+----------+
+|userId|movieId|rating| timestamp|
++------+-------+------+----------+
+|    11|     50|   5.0|1391658537|
+|    11|     70|   1.0|1391656827|
+|    11|    169|   3.0|1391657297|
+|    11|    296|   5.0|1391658423|
+|    11|    785|   3.5|1391656845|
+|    11|    923|   5.0|1391658556|
+|    11|   1027|   4.5|1391658634|
+|    11|   1201|   5.0|1391658440|
+|    11|   1408|   5.0|1391658667|
+|    11|   2042|   3.5|1391657376|
+|    11|   2596|   4.5|1391657543|
+|    11|   2762|   3.0|1391658583|
+|    11|   3424|   3.0|1391657112|
+|    11|   5669|   3.0|1391658601|
+|    11|   6598|   5.0|1391657861|
+|    11|  26614|   5.0|1391658574|
+|    11|  48516|   5.0|1391658450|
+|    11|  51084|   4.0|1391657605|
+|    11|  58295|   4.5|1391657459|
+|    11|  71211|   3.5|1391657720|
++------+-------+------+----------+
+only showing top 20 rows
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># a list of movies we are thinking to offer</span>
+<span class="n">user_suggest</span> <span class="o">=</span> <span class="n">test_data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="s1">&#39;userId&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">11</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="s1">&#39;movieId&#39;</span><span class="p">,</span> <span class="s1">&#39;userId&#39;</span><span class="p">])</span>
+<span class="n">user_suggest</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+------+
+|movieId|userId|
++-------+------+
+|    126|    11|
+|    778|    11|
+|   1918|    11|
+|  81158|    11|
+|  81562|    11|
++-------+------+
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1"># offer movies with a high predicted rating</span>
+<span class="n">user_offer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">user_suggest</span><span class="p">)</span>
+<span class="n">user_offer</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;prediction&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>+-------+------+----------+
+|movieId|userId|prediction|
++-------+------+----------+
+|    778|    11|  4.746132|
+|    126|    11|   4.20014|
+|  81562|    11|  3.883953|
+|   1918|    11| 2.9844015|
+|  81158|    11| 2.9751697|
++-------+------+----------+
+</pre></div>
+    </div>
+  </article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+<div class="row">
+  <ul class="col-sm-6 list-inline">
+      <li class="list-inline-item"><a href="/authors.html">Authors</a></li>
+    <li class="list-inline-item"><a href="/archives.html">Archives</a></li>
+    <li class="list-inline-item"><a href="/categories.html">Categories</a></li>
+      <li class="list-inline-item"><a href="/tags.html">Tags</a></li>
+  </ul>
+  <p class="col-sm-6 text-sm-right text-muted">
+    Generated by <a href="https://github.com/getpelican/pelican" target="_blank">Pelican</a>
+    / <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+  </p>
+</div>    </div>
+  </footer>
+</body>
+
+</html>
