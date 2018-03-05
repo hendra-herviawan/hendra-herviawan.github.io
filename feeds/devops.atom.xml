@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>M Hendra Herviawan - DevOps</title><link href="/" rel="alternate"></link><link href="/feeds/devops.atom.xml" rel="self"></link><id>/</id><updated>2018-01-18T00:00:00+07:00</updated><entry><title>Setup Google Compute Enggine (GCE) using Terraform</title><link href="/setup-google_compute_enggine-with-terraform.html" rel="alternate"></link><published>2018-01-18T00:00:00+07:00</published><updated>2018-01-18T00:00:00+07:00</updated><author><name>M Hendra Herviawan</name></author><id>tag:None,2018-01-18:/setup-google_compute_enggine-with-terraform.html</id><summary type="html">&lt;p&gt;How to create google compute enggine using Terraform&lt;/p&gt;</summary><content type="html">&lt;h3&gt;Pre-requisites&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Terraform&lt;/li&gt;
+&lt;li&gt;Google Cloud Platform account&lt;/li&gt;
+&lt;li&gt;GCP API Authentication credentials&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Script to create Google Compute Enggine with Terrafor.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// Variable&lt;/span&gt;
+&lt;span class="nx"&gt;variable&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;region&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;us-east1-d&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nx"&gt;variable&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;project&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;vital-ensign-188214&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;// Provider&lt;/span&gt;
+&lt;span class="nx"&gt;provider&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;google&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nx"&gt;credentials&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;${file(&amp;quot;&lt;/span&gt;&lt;span class="nx"&gt;myfirstproject&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;teraform&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;ce&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;json&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)}&amp;quot;&lt;/span&gt;
+  &lt;span class="nx"&gt;project&lt;/span&gt;     &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;${var.project}&amp;quot;&lt;/span&gt;
+  &lt;span class="nx"&gt;region&lt;/span&gt;      &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;${var.region}&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;// Google Compute Instance&lt;/span&gt;
+&lt;span class="nx"&gt;resource&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;google_compute_instance&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;test&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nx"&gt;count&lt;/span&gt;        &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;                        &lt;span class="c1"&gt;// &lt;/span&gt;
+  &lt;span class="nx"&gt;name&lt;/span&gt;         &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;test${count.index + 1}&amp;quot;&lt;/span&gt; &lt;span class="c1"&gt;// yields &amp;quot;test1&amp;quot;, &amp;quot;test2&amp;quot;, etc. It&amp;#39;s also the machine&amp;#39;s name and hostname&lt;/span&gt;
+  &lt;span class="nx"&gt;machine_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;f1-micro&amp;quot;&lt;/span&gt;               &lt;span class="c1"&gt;// smallest (CPU &amp;amp;amp; RAM) available instance&lt;/span&gt;
+  &lt;span class="nx"&gt;zone&lt;/span&gt;         &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;${var.region}&amp;quot;&lt;/span&gt;          &lt;span class="c1"&gt;//&lt;/span&gt;
+
+  &lt;span class="nx"&gt;boot_disk&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;initialize_params&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="nx"&gt;image&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ubuntu-1710&amp;quot;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="nx"&gt;network_interface&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;network&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;default&amp;quot;&lt;/span&gt;
+
+    &lt;span class="nx"&gt;access_config&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="c1"&gt;// Ephemeral IP - leaving this block empty will generate a new external IP and assign it to the machine&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This simple script is devided into 3 part: Variable, Provider, Resource&lt;/p&gt;
+&lt;h3&gt;Variable&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Region: Region where Google Compute Enginne will be deploy (&lt;a href="https://cloud.google.com/compute/docs/regions-zones/"&gt;Available GCP Region&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Project: GCP Project&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Provider&lt;/h3&gt;
+&lt;p&gt;1.Credential: Contain authenticated requared to create resource (Google Cloud Platform -&amp;gt; API Manager -&amp;gt; Credentials -&amp;gt; Create Credentials -&amp;gt; Service account key)
+1. Region &amp;amp; Project: We already define this in variable&lt;/p&gt;
+&lt;h3&gt;Resource&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html"&gt;Google Compute Instance&lt;/a&gt;: Manages a VM instance resource within GCE. An instance is a virtual machine (VM) hosted on Google's infrastructure.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html#boot_disk"&gt;boot_disk&lt;/a&gt;: The boot disk for the instance.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.terraform.io/docs/providers/google/r/compute_instance.html#network_interface"&gt;network_interface&lt;/a&gt;: Networks to attach to the instance&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Terraform Commands&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;terraform get: The terraform get command is used to download and update modules mentioned in the root module.&lt;/li&gt;
+&lt;li&gt;terraform plan: create an execution plan&lt;/li&gt;
+&lt;li&gt;terraform apply: apply the changes required to reach the desired state of the configuration, or the pre-determined set of actions generated by a terraform plan execution plan.&lt;/li&gt;
+&lt;li&gt;terraform destroy: destroy the Terraform-managed infrastructure.&lt;/li&gt;
+&lt;/ul&gt;</content><category term="GCP"></category><category term="Terraform"></category></entry><entry><title>Create Apache Spark Cluster on Google Dataproc</title><link href="/create-apache-spark-cluster-on-google-dataproc.html" rel="alternate"></link><published>2018-01-01T00:00:00+07:00</published><updated>2018-01-01T00:00:00+07:00</updated><author><name>M Hendra Herviawan</name></author><id>tag:None,2018-01-01:/create-apache-spark-cluster-on-google-dataproc.html</id><summary type="html">&lt;p&gt;How to setup apache spark cluster&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="Apache Spark Architecture" src="https://spark.apache.org/docs/latest/img/cluster-overview.png"&gt;&lt;/p&gt;
+&lt;h2&gt;1.&lt;a href="https://cloud.google.com/dataproc"&gt;Dataproc&lt;/a&gt; Console - Create Cluster&lt;/h2&gt;
+&lt;p&gt;Cloud Dataproc is a fast, easy-to-use, fully-managed cloud service for running Apache Spark and Apache Hadoop clusters in a simpler, more cost-efficient way.&lt;br&gt;
+&lt;img alt="Create Google Dataproc Cluster" src="images/4532/1.png"&gt;&lt;/p&gt;
+&lt;h2&gt;2.Master Node&lt;/h2&gt;
+&lt;p&gt;An external service for acquiring resources on the cluster (e.g. standalone manager, Mesos, YARN).&lt;br&gt;
+&lt;img alt="Create Master Node" src="images/4532/2.png"&gt;&lt;/p&gt;
+&lt;h2&gt;3. Worker Node&lt;/h2&gt;
+&lt;p&gt;Any node that can run application code in the cluster.&lt;br&gt;
+&lt;img alt="Create Worker Node" src="images/4532/3.png"&gt;&lt;/p&gt;
+&lt;h2&gt;4.&lt;a href="https://cloud.google.com/preemptible-vms/"&gt;Preemtible&lt;/a&gt; Worker Node&lt;/h2&gt;
+&lt;p&gt;Preemtible is Affordable, short-lived compute instances suitable for batch jobs and fault-tolerant workloads.&lt;br&gt;
+&lt;img alt="Preemtible Worker Node" src="images/4532/4.png"&gt;&lt;/p&gt;
+&lt;h2&gt;5. Cloud Storage Staging Bucket&lt;/h2&gt;
+&lt;p&gt;To make your cluster persistance you need to specific where the file will be save. &lt;br&gt;
+&lt;img alt="Staging Bucket" src="images/4532/5.png"&gt;&lt;/p&gt;
+&lt;h2&gt;6. Initialization Action&lt;/h2&gt;
+&lt;p&gt;Specify initialization actions in executables or scripts that Cloud Dataproc will run on all nodes in your Cloud Dataproc cluster immediately after the cluster is set up. You can find frequently used and other sample initialization action scripts at the following locations:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/GoogleCloudPlatform/dataproc-initialization-actions"&gt;GitHub repository&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions"&gt;Cloud Storage&lt;/a&gt; - in shared bucket&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt;&amp;gt; gsutil ls gs://dataproc-initialization-actions
+
+gs://dataproc-initialization-actions/CONTRIBUTING.md
+gs://dataproc-initialization-actions/LICENSE
+gs://dataproc-initialization-actions/README.md
+gs://dataproc-initialization-actions/favicon.ico
+gs://dataproc-initialization-actions/apache-zeppelin/
+gs://dataproc-initialization-actions/bigdl/
+gs://dataproc-initialization-actions/cloud-sql-proxy/
+gs://dataproc-initialization-actions/conda/
+gs://dataproc-initialization-actions/datalab/
+gs://dataproc-initialization-actions/drill/
+gs://dataproc-initialization-actions/flink/
+gs://dataproc-initialization-actions/ganglia/
+gs://dataproc-initialization-actions/hive-hcatalog/
+gs://dataproc-initialization-actions/hue/
+gs://dataproc-initialization-actions/ipython-notebook/
+gs://dataproc-initialization-actions/jupyter/
+gs://dataproc-initialization-actions/kafka/
+gs://dataproc-initialization-actions/list-consistency-cache/
+gs://dataproc-initialization-actions/oozie/
+gs://dataproc-initialization-actions/post-init/
+gs://dataproc-initialization-actions/presto/
+gs://dataproc-initialization-actions/stackdriver/
+gs://dataproc-initialization-actions/tez/
+gs://dataproc-initialization-actions/user-environment/
+gs://dataproc-initialization-actions/util/
+gs://dataproc-initialization-actions/zeppelin/
+gs://dataproc-initialization-actions/zookeeper/
+&lt;/pre&gt;&lt;/div&gt;</content><category term="GCP"></category><category term="Apache Spark"></category><category term="Dataproc"></category></entry></feed>
