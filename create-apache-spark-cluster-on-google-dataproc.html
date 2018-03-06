@@ -62,27 +62,28 @@
     </header>
     <div class="content">
       <p><img alt="Apache Spark Architecture" src="https://spark.apache.org/docs/latest/img/cluster-overview.png"></p>
-<h2>1.<a href="https://cloud.google.com/dataproc">Dataproc</a> Console - Create Cluster</h2>
-<p>Cloud Dataproc is a fast, easy-to-use, fully-managed cloud service for running Apache Spark and Apache Hadoop clusters in a simpler, more cost-efficient way.<br>
-<img alt="Create Google Dataproc Cluster" src="images/4532/1.png"></p>
+<h2>1.Google Dataproc Console - Create Cluster</h2>
+<p><a href="https://cloud.google.com/dataproc">Google Dataproc</a> is a fast, easy-to-use, fully-managed cloud service for running Apache Spark and Apache Hadoop clusters in a simpler, more cost-efficient way.</p>
+<p><img alt="Create Google Dataproc Cluster" src="images/4532/1.png"></p>
 <h2>2.Master Node</h2>
-<p>An external service for acquiring resources on the cluster (e.g. standalone manager, Mesos, YARN).<br>
-<img alt="Create Master Node" src="images/4532/2.png"></p>
+<p>An external service for acquiring resources on the cluster (e.g. standalone manager, Mesos, YARN).</p>
+<p><img alt="Create Master Node" src="images/4532/2.png"></p>
 <h2>3. Worker Node</h2>
-<p>Any node that can run application code in the cluster.<br>
-<img alt="Create Worker Node" src="images/4532/3.png"></p>
-<h2>4.<a href="https://cloud.google.com/preemptible-vms/">Preemtible</a> Worker Node</h2>
-<p>Preemtible is Affordable, short-lived compute instances suitable for batch jobs and fault-tolerant workloads.<br>
-<img alt="Preemtible Worker Node" src="images/4532/4.png"></p>
+<p>Any node that can run application code in the cluster.</p>
+<p><img alt="Create Worker Node" src="images/4532/3.png"></p>
+<h2>4.Preemtible Worker Node</h2>
+<p><a href="https://cloud.google.com/preemptible-vms/">Preemtible</a> is Affordable, short-lived compute instances suitable for batch jobs and fault-tolerant workloads.</p>
+<p><img alt="Preemtible Worker Node" src="images/4532/4.png"></p>
 <h2>5. Cloud Storage Staging Bucket</h2>
-<p>To make your cluster persistance you need to specific where the file will be save. <br>
-<img alt="Staging Bucket" src="images/4532/5.png"></p>
+<p>To make your cluster persistance you need to specific where the file will be save.</p>
+<p><img alt="Staging Bucket" src="images/4532/5.png"></p>
 <h2>6. Initialization Action</h2>
 <p>Specify initialization actions in executables or scripts that Cloud Dataproc will run on all nodes in your Cloud Dataproc cluster immediately after the cluster is set up. You can find frequently used and other sample initialization action scripts at the following locations:</p>
 <ul>
 <li><a href="https://github.com/GoogleCloudPlatform/dataproc-initialization-actions">GitHub repository</a></li>
 <li><a href="https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions">Cloud Storage</a> - in shared bucket</li>
 </ul>
+<p>Supported Development Environment Initialization Script for Google Dataproc :</p>
 <div class="highlight"><pre><span></span>&gt;&gt; gsutil ls gs://dataproc-initialization-actions
 
 gs://dataproc-initialization-actions/CONTRIBUTING.md
@@ -113,6 +114,31 @@ gs://dataproc-initialization-actions/util/
 gs://dataproc-initialization-actions/zeppelin/
 gs://dataproc-initialization-actions/zookeeper/
 </pre></div>
+
+
+<p>We will use jupyter notebook as development environment </p>
+<div class="highlight"><pre><span></span>&gt;&gt; gsutil ls gs://dataproc-initialization-actions/jupyter/
+
+gs://dataproc-initialization-actions/jupyter/
+gs://dataproc-initialization-actions/jupyter/README.MD
+gs://dataproc-initialization-actions/jupyter/jupyter.sh        #Initialization Script
+gs://dataproc-initialization-actions/jupyter/launch-jupyter-interface.sh
+gs://dataproc-initialization-actions/jupyter/internal/
+gs://dataproc-initialization-actions/jupyter/kernels/
+</pre></div>
+
+
+<h2>7. Connect to CLuster</h2>
+<p>We need to find IP address for Master Node</p>
+<p><img alt="Cluster Up &amp; Running" src="images/4532/7a.png">
+<img alt="a Master and two node" src="images/4532/7b.png">
+<img alt="Master IP Adress" src="images/4532/7c.png"></p>
+<h2>8. Connect to Jupyter</h2>
+<p>Jupyter Notebook is on port 8123</p>
+<p><img alt="Master IP Adress" src="images/4532/8.png"></p>
+<h2>9. Stop the Cluster</h2>
+<p>Cluster in Google Dataproc is stateless, To persistance your work you need provided Google datastore bucket as seen in step 5.</p>
+<p><img alt="Master IP Adress" src="images/4532/9.png"></p>
     </div>
   </article>
     </div>
