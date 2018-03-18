@@ -20,7 +20,7 @@
         href="https://hendra-herviawan.github.io/feeds/all.atom.xml">
   <link rel="alternate" type="application/atom+xml" title="Categories Atom Feed"
         href="https://hendra-herviawan.github.io/feeds/devops.atom.xml">  
-  <meta name="description" content="Deploying Recommendation system as microservices using docker¶A REST-Based Architecture for Serving ML Model Outputs at Scale¶*Note:This is working draft articel Docker enables your applications to communicate between one another and to compose and scale various components. Modern applications running in the cloud often rely on REST-based microservices architectures by using Docker containers. Data scientists use these techniques to efficiently scale their machine learning models to production applications.">
+  <meta name="description" content="A REST-Based Architecture for Serving ML Model Outputs at Scale¶*Note:This is working draft articel Docker enables your applications to communicate between one another and to compose and scale various components. Modern applications running in the cloud often rely on REST-based microservices architectures by using Docker containers. Data scientists use these techniques to efficiently scale their machine learning models to production applications.">
 
 
 </head>
@@ -1040,7 +1040,7 @@ h6:hover .anchor-link {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Deploying-Recommendation-system-as-microservices-using-docker">Deploying Recommendation system as microservices using docker<a class="anchor-link" href="#Deploying-Recommendation-system-as-microservices-using-docker">¶</a></h1><h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale">A REST-Based Architecture for Serving ML Model Outputs at Scale<a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale">¶</a></h3><p>*Note:This is working draft articel</p>
+<h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale">A REST-Based Architecture for Serving ML Model Outputs at Scale<a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale">¶</a></h3><p>*Note:This is working draft articel</p>
 <p>Docker enables your applications to communicate between one another and to compose and scale various components. Modern applications running in the cloud often rely on REST-based microservices architectures by using Docker containers. Data scientists use these techniques to efficiently scale their machine learning models to production applications.</p>
 </div>
 </div>
@@ -1057,7 +1057,7 @@ h6:hover .anchor-link {
 <li>A Python Machine Learning (from here on called Model)</li>
 </ul>
 <p>When visiting client make a request you connect to the nginx proxy component. Below is an overview that shows how the components work together.
-<img src="https://blog.giantswarm.io/assets/2015/04/dogfooding_website_fig01.png" /></p>
+<img src="https://blog.giantswarm.io/assets/2015/04/dogfooding_website_fig01.png" width="800" /></p>
 </div>
 </div>
 </div>
@@ -1065,8 +1065,8 @@ h6:hover .anchor-link {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Docker-Container">Docker Container<a class="anchor-link" href="#Docker-Container">¶</a></h2><p>The first container need to run is "redis:alpine" from docker official repository. Redis will serve as in memory database to hold item to item recommendation generate by Model Container.</p>
-<h4 id="Model-Container">Model Container<a class="anchor-link" href="#Model-Container">¶</a></h4><p>Recommendation will be produce by Model Container and save in redis container. If there is new item, The model need to be retrain. There will be no down time during training becouse its the training process happen in anather container/host.</p>
+<p>The first container need to run is "redis:alpine" from docker official repository. Redis will serve as in memory database to hold item to item recommendation generate by Model Container.</p>
+<h3 id="Model-Container">Model Container<a class="anchor-link" href="#Model-Container">¶</a></h3><p>Recommendation will be produce by Model Container and save in redis container. If there is new item, The model need to be retrain. There will be no down time during training becouse its the training process happen in anather container/host.</p>
 <div class="highlight"><pre><span></span>FROM frolvlad/alpine-python-machinelearning
 
 RUN mkdir -p /usr/src/app
@@ -1081,7 +1081,7 @@ CMD <span class="o">[</span><span class="s2">"python3"</span>, <span class="s2">
 
 <span class="c1">#docker run --rm -v "$PWD"/input/:/usr/src/app/input -w /usr/src/app tfidf1 python3 tfidf1.py</span>
 </pre></div>
-<h4 id="Flask-API-Container">Flask API Container<a class="anchor-link" href="#Flask-API-Container">¶</a></h4><p>Every request will be handle by Flask API. This is realy simple resfull server that read recommendation from redis server. This architecture is really scallable becouse if need anather server we just instanstiate anather docker container.</p>
+<h3 id="Flask-API-Container">Flask API Container<a class="anchor-link" href="#Flask-API-Container">¶</a></h3><p>Every request will be handle by Flask API. This is realy simple resfull server that read recommendation from redis server. This architecture is really scallable becouse if need anather server we just instanstiate anather docker container.</p>
 <div class="highlight"><pre><span></span>FROM frolvlad/alpine-python3
 
 ENV REDIS_HOST redisDB

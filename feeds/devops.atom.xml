@@ -149,7 +149,7 @@ gs://dataproc-initialization-actions/jupyter/kernels/
 &lt;/div&gt;
 &lt;div class="inner_cell"&gt;
 &lt;div class="text_cell_render border-box-sizing rendered_html"&gt;
-&lt;h1 id="Deploying-Recommendation-system-as-microservices-using-docker"&gt;Deploying Recommendation system as microservices using docker&lt;a class="anchor-link" href="#Deploying-Recommendation-system-as-microservices-using-docker"&gt;¶&lt;/a&gt;&lt;/h1&gt;&lt;h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;A REST-Based Architecture for Serving ML Model Outputs at Scale&lt;a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;*Note:This is working draft articel&lt;/p&gt;
+&lt;h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;A REST-Based Architecture for Serving ML Model Outputs at Scale&lt;a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;*Note:This is working draft articel&lt;/p&gt;
 &lt;p&gt;Docker enables your applications to communicate between one another and to compose and scale various components. Modern applications running in the cloud often rely on REST-based microservices architectures by using Docker containers. Data scientists use these techniques to efficiently scale their machine learning models to production applications.&lt;/p&gt;</summary><content type="html">&lt;style type="text/css"&gt;/*!
 *
 * IPython notebook
@@ -1126,7 +1126,7 @@ h6:hover .anchor-link {
 &lt;/div&gt;
 &lt;div class="inner_cell"&gt;
 &lt;div class="text_cell_render border-box-sizing rendered_html"&gt;
-&lt;h1 id="Deploying-Recommendation-system-as-microservices-using-docker"&gt;Deploying Recommendation system as microservices using docker&lt;a class="anchor-link" href="#Deploying-Recommendation-system-as-microservices-using-docker"&gt;¶&lt;/a&gt;&lt;/h1&gt;&lt;h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;A REST-Based Architecture for Serving ML Model Outputs at Scale&lt;a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;*Note:This is working draft articel&lt;/p&gt;
+&lt;h3 id="A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;A REST-Based Architecture for Serving ML Model Outputs at Scale&lt;a class="anchor-link" href="#A-REST-Based-Architecture-for-Serving-ML-Model-Outputs-at-Scale"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;*Note:This is working draft articel&lt;/p&gt;
 &lt;p&gt;Docker enables your applications to communicate between one another and to compose and scale various components. Modern applications running in the cloud often rely on REST-based microservices architectures by using Docker containers. Data scientists use these techniques to efficiently scale their machine learning models to production applications.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -1143,7 +1143,7 @@ h6:hover .anchor-link {
 &lt;li&gt;A Python Machine Learning (from here on called Model)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;When visiting client make a request you connect to the nginx proxy component. Below is an overview that shows how the components work together.
-&lt;img src="https://blog.giantswarm.io/assets/2015/04/dogfooding_website_fig01.png" /&gt;&lt;/p&gt;
+&lt;img src="https://blog.giantswarm.io/assets/2015/04/dogfooding_website_fig01.png" width="800" /&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -1151,8 +1151,8 @@ h6:hover .anchor-link {
 &lt;/div&gt;
 &lt;div class="inner_cell"&gt;
 &lt;div class="text_cell_render border-box-sizing rendered_html"&gt;
-&lt;h2 id="Docker-Container"&gt;Docker Container&lt;a class="anchor-link" href="#Docker-Container"&gt;¶&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The first container need to run is "redis:alpine" from docker official repository. Redis will serve as in memory database to hold item to item recommendation generate by Model Container.&lt;/p&gt;
-&lt;h4 id="Model-Container"&gt;Model Container&lt;a class="anchor-link" href="#Model-Container"&gt;¶&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;Recommendation will be produce by Model Container and save in redis container. If there is new item, The model need to be retrain. There will be no down time during training becouse its the training process happen in anather container/host.&lt;/p&gt;
+&lt;p&gt;The first container need to run is "redis:alpine" from docker official repository. Redis will serve as in memory database to hold item to item recommendation generate by Model Container.&lt;/p&gt;
+&lt;h3 id="Model-Container"&gt;Model Container&lt;a class="anchor-link" href="#Model-Container"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Recommendation will be produce by Model Container and save in redis container. If there is new item, The model need to be retrain. There will be no down time during training becouse its the training process happen in anather container/host.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM frolvlad/alpine-python-machinelearning
 
 RUN mkdir -p /usr/src/app
@@ -1167,7 +1167,7 @@ CMD &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"python3"&lt;/spa
 
 &lt;span class="c1"&gt;#docker run --rm -v "$PWD"/input/:/usr/src/app/input -w /usr/src/app tfidf1 python3 tfidf1.py&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h4 id="Flask-API-Container"&gt;Flask API Container&lt;a class="anchor-link" href="#Flask-API-Container"&gt;¶&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;Every request will be handle by Flask API. This is realy simple resfull server that read recommendation from redis server. This architecture is really scallable becouse if need anather server we just instanstiate anather docker container.&lt;/p&gt;
+&lt;h3 id="Flask-API-Container"&gt;Flask API Container&lt;a class="anchor-link" href="#Flask-API-Container"&gt;¶&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Every request will be handle by Flask API. This is realy simple resfull server that read recommendation from redis server. This architecture is really scallable becouse if need anather server we just instanstiate anather docker container.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM frolvlad/alpine-python3
 
 ENV REDIS_HOST redisDB
